@@ -1,0 +1,86 @@
+[
+  {
+    "id": "1",
+    "title": "Myanmar Civil Law (မြန်မာ့တရားမဥပဒေ)",
+    "author": "U Ba",
+    "category": "Civil Law",
+    "year": "2024",
+    "description": "A comprehensive guide to civil law procedures and regulations in Myanmar, updated with the latest amendments.",
+    "cover": "https://picsum.photos/seed/civillaw/400/600",
+    "read": "https://drive.google.com/file/d/1_y_v_dummy_id/preview",
+    "file": "https://drive.google.com/uc?export=download&id=1_y_v_dummy_id",
+    "featured": true
+  },
+  {
+    "id": "2",
+    "title": "Criminal Procedure Code (ရာဇဝတ်ကျင့်ထုံးဥပဒေ)",
+    "author": "Daw Hla",
+    "category": "Criminal Law",
+    "year": "2023",
+    "description": "Detailed analysis of the Criminal Procedure Code of Myanmar for legal practitioners and students.",
+    "cover": "https://picsum.photos/seed/criminal/400/600",
+    "read": "https://drive.google.com/file/d/1_y_v_dummy_id2/preview",
+    "file": "https://drive.google.com/uc?export=download&id=1_y_v_dummy_id2",
+    "featured": true
+  },
+  {
+    "id": "3",
+    "title": "Constitution of Myanmar (ဖွဲ့စည်းပုံအခြေခံဥပဒေ)",
+    "author": "Ministry of Justice",
+    "category": "Constitution Law",
+    "year": "2008",
+    "description": "The official text of the 2008 Constitution of the Republic of the Union of Myanmar.",
+    "cover": "https://picsum.photos/seed/constitution/400/600",
+    "read": "https://drive.google.com/file/d/1_y_v_dummy_id3/preview",
+    "file": "https://drive.google.com/uc?export=download&id=1_y_v_dummy_id3",
+    "featured": false
+  },
+  {
+    "id": "4",
+    "title": "Business Law Essentials (စီးပွားရေးဥပဒေအခြေခံ)",
+    "author": "U Kyaw",
+    "category": "Business Law",
+    "year": "2022",
+    "description": "Essential legal knowledge for business owners and entrepreneurs in Myanmar.",
+    "cover": "https://picsum.photos/seed/business/400/600",
+    "read": "https://drive.google.com/file/d/1_y_v_dummy_id4/preview",
+    "file": "https://drive.google.com/uc?export=download&id=1_y_v_dummy_id4",
+    "featured": false
+  },
+  {
+    "id": "5",
+    "title": "International Human Rights Law",
+    "author": "Dr. Smith",
+    "category": "International Law",
+    "year": "2021",
+    "description": "An overview of international human rights standards and their application in the regional context.",
+    "cover": "https://picsum.photos/seed/international/400/600",
+    "read": "https://drive.google.com/file/d/1_y_v_dummy_id5/preview",
+    "file": "https://drive.google.com/uc?export=download&id=1_y_v_dummy_id5",
+    "featured": false
+  },
+  {
+    "id": "6",
+    "title": "Court Procedures Manual",
+    "author": "Supreme Court",
+    "category": "Court Procedures",
+    "year": "2024",
+    "description": "Official manual for court procedures and filing requirements in Myanmar courts.",
+    "cover": "https://picsum.photos/seed/court/400/600",
+    "read": "https://drive.google.com/file/d/1_y_v_dummy_id6/preview",
+    "file": "https://drive.google.com/uc?export=download&id=1_y_v_dummy_id6",
+    "featured": true
+  },
+  {
+    "id": "7",
+    "title": "Myanmar Customary Law",
+    "author": "U Myint",
+    "category": "Myanmar Law",
+    "year": "2020",
+    "description": "Exploration of customary laws and traditions integrated into the Myanmar legal system.",
+    "cover": "https://picsum.photos/seed/customary/400/600",
+    "read": "https://drive.google.com/file/d/1_y_v_dummy_id7/preview",
+    "file": "https://drive.google.com/uc?export=download&id=1_y_v_dummy_id7",
+    "featured": false
+  }
+]
