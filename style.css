@@ -92,6 +92,25 @@ header {
     box-shadow: 0 4px 15px rgba(0,0,0,0.2);
 }
 
+.search-input-wrapper {
+    flex: 1;
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.search-suggestion {
+    position: absolute;
+    left: 1.5rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #999;
+    pointer-events: none;
+    font-size: 1rem;
+    white-space: pre;
+    font-family: inherit;
+}
+
 .search-container input {
     flex: 1;
     border: none;
@@ -99,6 +118,9 @@ header {
     border-radius: 50px;
     outline: none;
     font-size: 1rem;
+    background: transparent;
+    position: relative;
+    z-index: 1;
 }
 
 .search-container button {

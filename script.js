@@ -513,11 +513,30 @@ function scrollToContent() {
 
 function setupSearch() {
     const searchInput = document.getElementById('search-input');
+    const suggestionSpan = document.getElementById('search-suggestion');
     if (!searchInput) return;
 
     searchInput.addEventListener('input', (e) => {
         const term = e.target.value.toLowerCase();
         
+        // Handle search suggestions (ghost text)
+        if (term.length > 0) {
+            const match = allBooks.find(book => 
+                book.title.toLowerCase().startsWith(term)
+            );
+            
+            if (match && suggestionSpan) {
+                // Show suggestion with original casing from the user's input
+                const originalInput = e.target.value;
+                const suggestionSuffix = match.title.slice(originalInput.length);
+                suggestionSpan.textContent = originalInput + suggestionSuffix;
+            } else if (suggestionSpan) {
+                suggestionSpan.textContent = '';
+            }
+        } else if (suggestionSpan) {
+            suggestionSpan.textContent = '';
+        }
+
         // Auto-Reset Alphabet Filter Logic
         if (term.length > 0) {
             // 1. Remove 'active' class from all letter buttons
@@ -545,5 +564,21 @@ function setupSearch() {
         );
         
         renderBooks(filteredBooks);
+    });
+
+    // Handle Tab or Right Arrow to accept suggestion
+    searchInput.addEventListener('keydown', (e) => {
+        if ((e.key === 'Tab' || e.key === 'ArrowRight') && suggestionSpan && suggestionSpan.textContent) {
+            const currentInput = searchInput.value;
+            const suggestion = suggestionSpan.textContent;
+            
+            // If the cursor is at the end of the input, accept the suggestion
+            if (searchInput.selectionStart === currentInput.length && suggestion.length > currentInput.length) {
+                e.preventDefault();
+                searchInput.value = suggestion;
+                // Trigger input event to update results
+                searchInput.dispatchEvent(new Event('input'));
+            }
+        }
     });
 }

@@ -35,7 +35,10 @@
         <h1>Myanmar Legal Book Library</h1>
         <p>Access thousands of legal references, court procedures, and law books in one place.</p>
         <div class="search-container">
-            <input type="text" id="search-input" placeholder="Search by title, author, or category...">
+            <div class="search-input-wrapper">
+                <span id="search-suggestion" class="search-suggestion"></span>
+                <input type="text" id="search-input" placeholder="Search by title, author, or category..." autocomplete="off">
+            </div>
             <button><i class="fas fa-search"></i> Search</button>
         </div>
     </section>
