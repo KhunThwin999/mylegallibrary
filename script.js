@@ -1,6 +1,5 @@
 // Configuration
 const CONFIG = {
-    // User's Google Sheet URL
     GOOGLE_SHEET_URL: 'https://opensheet.elk.sh/1HCOpKGKhv_Ggm3r6dtvldqUynv5z6vLy98jjeOSrS4I/Sheet1', 
     LOCAL_JSON: 'books.json'
 };
@@ -10,10 +9,25 @@ let filteredBooks = [];
 let isFetching = false;
 let fetchPromise = null;
 
+const CATEGORY_ICONS = {
+    'All': 'fa-th-large',
+    'Law & Constitution': 'fa-balance-scale',
+    'Police Procedure': 'fa-shield-alt',
+    'Penal Code': 'fa-gavel',
+    'Civil Law': 'fa-users',
+    'Criminal Law': 'fa-user-secret',
+    'Land Law': 'fa-map-marked-alt',
+    'Business Law': 'fa-briefcase',
+    'International Law': 'fa-globe',
+    'Default': 'fa-book'
+};
+
 document.addEventListener('DOMContentLoaded', () => {
     initApp();
     setupAlphabetFilter();
     setupSearch();
+    setupFilters();
+    setupSidebarSearch();
 });
 
 async function initApp() {
@@ -21,7 +35,11 @@ async function initApp() {
         const detailContainer = document.getElementById('book-detail-content');
         const isDetailPage = !!detailContainer || window.location.pathname.toLowerCase().includes('book');
         
-        showLoader(isDetailPage ? 'LOADING BOOK DETAILS...' : 'LOADING LEGAL LIBRARY...');
+        if (!isDetailPage) {
+            renderSkeletons();
+        }
+        
+        showLoader(isDetailPage ? 'LOADING BOOK DETAILS...' : 'PREPARING LEGAL ARCHIVES...');
         
         const books = await fetchBooks();
         
@@ -54,66 +72,39 @@ async function initApp() {
             const authorParam = urlParams.get('author');
             if (authorParam && document.getElementById('book-grid')) {
                 filterByAuthor(authorParam);
+            } else {
+                renderBooks(allBooks);
             }
+            renderYearFilter();
         }
     } catch (e) {
         console.error('Error in initApp:', e);
-        const detailContainer = document.getElementById('book-detail-content');
-        if (detailContainer) {
-            detailContainer.innerHTML = '<div style="text-align: center; padding: 5rem;">An unexpected error occurred. Please refresh the page.</div>';
-        }
     } finally {
         hideLoader();
     }
 }
 
-// Remove the standalone detail page logic at the bottom
-// and just keep the DOMContentLoaded listener
-
 async function initDetailPage(bookId) {
-    console.log('Initializing detail page for book ID:', bookId);
     try {
-        // 1. Wait for books to be fully loaded
         const books = await fetchBooks(); 
-        
-        if (!books || books.length === 0) {
-            throw new Error("No data received from Google Sheets");
-        }
-
-        // 2. Find the book (Ensure IDs are compared as Strings and trimmed)
         const book = books.find(b => String(b.id).trim() === String(bookId).trim());
 
         if (book) {
-            console.log('Book found:', book.title);
-            hideLoader(); // Kill the loader immediately
             renderBookDetail(book);
         } else {
-            console.warn('Book not found for ID:', bookId);
             const container = document.getElementById('book-detail-content');
             if (container) {
                 container.innerHTML = `
                     <div style="text-align: center; padding: 5rem;">
-                        <h2>Book ID ${bookId} not found.</h2>
+                        <h2>Book not found</h2>
                         <p>We couldn't find the book you're looking for.</p>
                         <a href="index.html" class="btn btn-primary" style="display: inline-block; margin-top: 1rem;">Back to Library</a>
                     </div>
                 `;
             }
-            hideLoader();
         }
     } catch (e) {
         console.error("Detail Page Error:", e);
-        hideLoader();
-        const container = document.getElementById('book-detail-content');
-        if (container) {
-            container.innerHTML = `
-                <div style="text-align: center; padding: 5rem;">
-                    <h2>Connection Error. Please refresh.</h2>
-                    <p>${e.message}</p>
-                    <button onclick="location.reload()" class="btn btn-primary" style="margin-top: 1rem;">Refresh Page</button>
-                </div>
-            `;
-        }
     }
 }
 
@@ -134,8 +125,8 @@ function renderBookDetail(book) {
                     <p>Publish Year: <span>${book.year}</span></p>
                 </div>
                 <div class="book-actions" style="max-width: 500px; gap: 15px; margin-top: 2rem;">
-                    <button onclick="openReader('${book.read}')" class="btn btn-primary btn-large">Read Online (Primary)</button>
-                    <a href="${book.file}" target="_blank" class="btn btn-outline">Download (Secondary)</a>
+                    <button onclick="openReader('${book.read}')" class="btn btn-primary btn-large">Read Online</button>
+                    <a href="${book.file}" target="_blank" class="btn btn-outline">Download PDF</a>
                 </div>
             </div>
         </div>
@@ -168,8 +159,6 @@ function showLoader(text) {
     if (loaderText && text) loaderText.textContent = text;
     if (loader) {
         loader.style.display = 'flex';
-        // Force a reflow to ensure the transition works if we just set display: flex
-        loader.offsetHeight; 
         loader.classList.remove('loader-hidden');
     }
 }
@@ -178,7 +167,6 @@ function hideLoader() {
     const loader = document.getElementById('loader');
     if (loader) {
         loader.classList.add('loader-hidden');
-        // Wait for transition to finish before setting display none
         setTimeout(() => {
             if (loader.classList.contains('loader-hidden')) {
                 loader.style.display = 'none';
@@ -187,15 +175,32 @@ function hideLoader() {
     }
 }
 
-// Helper for fetch with timeout
+function renderSkeletons() {
+    const grid = document.getElementById('book-grid');
+    if (!grid) return;
+    
+    grid.innerHTML = Array(8).fill(0).map(() => `
+        <div class="book-card">
+            <div class="book-cover-wrapper skeleton"></div>
+            <div class="book-info">
+                <div class="skeleton" style="height: 12px; width: 40%; margin-bottom: 10px;"></div>
+                <div class="skeleton" style="height: 20px; width: 90%; margin-bottom: 8px;"></div>
+                <div class="skeleton" style="height: 20px; width: 70%; margin-bottom: 15px;"></div>
+                <div class="skeleton" style="height: 14px; width: 50%; margin-bottom: 20px;"></div>
+                <div style="display: flex; gap: 10px;">
+                    <div class="skeleton" style="height: 40px; flex: 1; border-radius: 8px;"></div>
+                    <div class="skeleton" style="height: 40px; flex: 1; border-radius: 8px;"></div>
+                </div>
+            </div>
+        </div>
+    `).join('');
+}
+
 async function fetchWithTimeout(url, options = {}, timeout = 10000) {
     const controller = new AbortController();
     const id = setTimeout(() => controller.abort(), timeout);
     try {
-        const response = await fetch(url, {
-            ...options,
-            signal: controller.signal
-        });
+        const response = await fetch(url, { ...options, signal: controller.signal });
         clearTimeout(id);
         return response;
     } catch (error) {
@@ -204,28 +209,16 @@ async function fetchWithTimeout(url, options = {}, timeout = 10000) {
     }
 }
 
-// Helper to fix Google Drive links if they are malformed
 function fixDriveLink(url, type = 'preview') {
     if (!url) return '';
-    
-    // Extract ID from various Google Drive URL formats
     const idMatch = url.match(/[-\w]{25,}/);
     const fileId = idMatch ? idMatch[0] : null;
-
     if (fileId) {
-        if (type === 'preview') {
-            return `https://drive.google.com/file/d/${fileId}/preview`;
-        } else if (type === 'cover' || type === 'image') {
-            // Use the most reliable direct image link format for Google Drive
-            return `https://lh3.googleusercontent.com/d/${fileId}`;
-        } else if (type === 'thumbnail') {
-            // Use Google Drive thumbnail service to get the first page of a PDF
-            return `https://drive.google.com/thumbnail?id=${fileId}&sz=w1000`;
-        } else {
-            return `https://drive.google.com/uc?export=download&id=${fileId}`;
-        }
+        if (type === 'preview') return `https://drive.google.com/file/d/${fileId}/preview`;
+        if (type === 'cover' || type === 'image') return `https://lh3.googleusercontent.com/d/${fileId}`;
+        if (type === 'thumbnail') return `https://drive.google.com/thumbnail?id=${fileId}&sz=w1000`;
+        return `https://drive.google.com/uc?export=download&id=${fileId}`;
     }
-    
     return url;
 }
 
@@ -237,17 +230,12 @@ async function fetchBooks() {
     fetchPromise = (async () => {
         try {
             let data = [];
-            
-            // Try fetching from Google Sheets if configured
             if (CONFIG.GOOGLE_SHEET_URL) {
                 try {
-                    // Use timeout for Google Sheets fetch as it can be slow/unreliable
                     const response = await fetchWithTimeout(CONFIG.GOOGLE_SHEET_URL, {}, 8000);
                     if (!response.ok) throw new Error('Network response was not ok');
                     data = await response.json();
-                    if (!Array.isArray(data)) throw new Error('Data is not an array');
                 } catch (e) {
-                    console.warn('Google Sheets fetch failed or timed out, falling back to local JSON', e);
                     const response = await fetch(CONFIG.LOCAL_JSON);
                     data = await response.json();
                 }
@@ -256,111 +244,51 @@ async function fetchBooks() {
                 data = await response.json();
             }
 
-            // Process data and fix links
             allBooks = data.map((book, index) => {
                 const id = (book.id ? String(book.id).trim() : null) || String(index + 1);
-                
-                // Determine cover URL
-                let coverUrl = '';
-                if (book.cover && book.cover.trim() !== '') {
-                    coverUrl = fixDriveLink(book.cover, 'cover');
-                } else if (book.read || book.file) {
-                    // Fallback: Use the first page of the PDF as the cover
-                    coverUrl = fixDriveLink(book.read || book.file, 'thumbnail');
-                }
-                
-                // Final fallback if still empty
-                if (!coverUrl || coverUrl === '') {
-                    coverUrl = `https://picsum.photos/seed/${id}/400/600`;
-                }
+                let coverUrl = book.cover ? fixDriveLink(book.cover, 'cover') : fixDriveLink(book.read || book.file, 'thumbnail');
+                if (!coverUrl) coverUrl = `https://picsum.photos/seed/${id}/400/600`;
 
                 return {
                     ...book,
                     id: id,
-                    // Fix links if they are full URLs instead of just IDs or malformed
                     read: fixDriveLink(book.read, 'preview'),
                     file: fixDriveLink(book.file, 'download'),
                     cover: coverUrl
                 };
-            }).sort((a, b) => {
-                const yearA = parseInt(a.year) || 0;
-                const yearB = parseInt(b.year) || 0;
-                return yearB - yearA;
-            });
+            }).sort((a, b) => (parseInt(b.year) || 0) - (parseInt(a.year) || 0));
 
             filteredBooks = [...allBooks];
-            
-            // Render homepage sections if on index.html
-            if (document.getElementById('book-grid')) {
-                renderHomepage();
-            }
-            
             renderCategories();
             return allBooks;
         } catch (error) {
             console.error('Error fetching books:', error);
-            const grid = document.getElementById('book-grid');
-            if (grid) grid.innerHTML = '<div class="error">Failed to load books. Please try again later.</div>';
             return [];
         } finally {
             isFetching = false;
         }
     })();
-
     return fetchPromise;
-}
-
-function renderHomepage() {
-    // Determine featured books (either from 'featured' column or first 3)
-    const featured = allBooks.filter(b => b.featured === 'TRUE' || b.featured === true || b.featured === '1');
-    const featuredToDisplay = featured.length > 0 ? featured : allBooks.slice(0, 3);
-    
-    const featuredSection = document.getElementById('featured-section');
-    const featuredGrid = document.getElementById('featured-grid');
-    
-    if (featuredSection && featuredGrid) {
-        if (featuredToDisplay.length > 0) {
-            featuredSection.style.display = 'block';
-            featuredGrid.innerHTML = featuredToDisplay.map(book => createBookCard(book)).join('');
-        } else {
-            featuredSection.style.display = 'none';
-        }
-    }
-
-    // Determine latest books (sorted by year descending)
-    const latestBooks = [...allBooks].sort((a, b) => {
-        const yearA = parseInt(a.year) || 0;
-        const yearB = parseInt(b.year) || 0;
-        return yearB - yearA;
-    }).slice(0, 4); // Show top 4 latest books
-
-    const latestSection = document.getElementById('latest-section');
-    const latestGrid = document.getElementById('latest-grid');
-
-    if (latestSection && latestGrid) {
-        if (latestBooks.length > 0) {
-            latestSection.style.display = 'block';
-            latestGrid.innerHTML = latestBooks.map(book => createBookCard(book)).join('');
-        } else {
-            latestSection.style.display = 'none';
-        }
-    }
-    
-    // For the main grid, we show all or filtered
-    renderBooks(filteredBooks);
 }
 
 function createBookCard(book) {
     return `
-        <div class="book-card" data-id="${book.id}" onclick="window.location.href='book.html?id=${book.id}'" style="cursor: pointer;">
-            <img src="${book.cover}" alt="${book.title}" class="book-cover" referrerPolicy="no-referrer" onerror="this.src='https://via.placeholder.com/400x600?text=No+Cover'">
+        <div class="book-card" data-id="${book.id}">
+            <div class="book-cover-wrapper" onclick="window.location.href='book.html?id=${book.id}'" style="cursor: pointer;">
+                <img src="${book.cover}" alt="${book.title}" class="book-cover" referrerPolicy="no-referrer" onerror="this.src='https://via.placeholder.com/400x600?text=No+Cover'">
+                ${book.featured === 'TRUE' ? '<span class="book-badge">Featured</span>' : ''}
+            </div>
             <div class="book-info">
                 <span class="book-category">${book.category}</span>
-                <h3 class="book-title">${book.title}</h3>
-                <p class="book-author" onclick="event.stopPropagation(); filterByAuthor('${book.author}')" style="cursor:pointer; color:var(--primary-color);">By ${book.author}</p>
-                <div class="book-actions" style="display: flex; flex-wrap: wrap; gap: 8px;">
-                    <button onclick="event.stopPropagation(); openReader('${book.read}')" class="btn btn-primary" style="flex: 1;">Read Online</button>
-                    <a href="${book.file}" target="_blank" class="btn btn-outline" style="flex: 1;" onclick="event.stopPropagation()">Download</a>
+                <h3 class="book-title" title="${book.title}">${book.title}</h3>
+                <p class="book-author">By ${book.author}</p>
+                <div class="book-actions">
+                    <button onclick="openReader('${book.read}')" class="btn btn-primary">
+                        <i class="fas fa-book-open"></i> Read
+                    </button>
+                    <a href="${book.file}" target="_blank" class="btn btn-outline">
+                        <i class="fas fa-download"></i> PDF
+                    </a>
                 </div>
             </div>
         </div>
@@ -369,13 +297,17 @@ function createBookCard(book) {
 
 function renderBooks(books) {
     const bookGrid = document.getElementById('book-grid');
+    const emptyState = document.getElementById('empty-state');
     if (!bookGrid) return;
 
     if (books.length === 0) {
-        bookGrid.innerHTML = '<div style="grid-column: 1/-1; text-align: center; padding: 3rem;">No books found matching your criteria.</div>';
+        bookGrid.style.display = 'none';
+        if (emptyState) emptyState.style.display = 'block';
         return;
     }
 
+    if (emptyState) emptyState.style.display = 'none';
+    bookGrid.style.display = 'grid';
     bookGrid.innerHTML = books.map(book => createBookCard(book)).join('');
 }
 
@@ -385,28 +317,57 @@ function renderCategories() {
 
     const categories = ['All', ...new Set(allBooks.map(book => book.category))];
     
-    categoryList.innerHTML = categories.map(cat => `
-        <li class="category-item" onclick="filterByCategory('${cat}')">${cat}</li>
-    `).join('');
+    categoryList.innerHTML = categories.map(cat => {
+        const icon = CATEGORY_ICONS[cat] || CATEGORY_ICONS['Default'];
+        return `
+            <li class="category-item ${cat === 'All' ? 'active' : ''}" onclick="filterByCategory('${cat}')">
+                <i class="fas ${icon}"></i>
+                <span>${cat}</span>
+            </li>
+        `;
+    }).join('');
+}
+
+function renderYearFilter() {
+    const yearFilter = document.getElementById('year-filter');
+    if (!yearFilter) return;
+
+    const years = [...new Set(allBooks.map(book => book.year))].filter(Boolean).sort((a, b) => b - a);
+    yearFilter.innerHTML = '<option value="All">All Years</option>' + 
+        years.map(year => `<option value="${year}">${year}</option>`).join('');
+}
+
+function setupFilters() {
+    const yearFilter = document.getElementById('year-filter');
+    if (yearFilter) {
+        yearFilter.addEventListener('change', (e) => {
+            applyFilters();
+        });
+    }
+}
+
+function setupSidebarSearch() {
+    const sidebarSearch = document.getElementById('sidebar-search-input');
+    if (!sidebarSearch) return;
+
+    sidebarSearch.addEventListener('input', (e) => {
+        const term = e.target.value.toLowerCase();
+        const items = document.querySelectorAll('.category-item');
+        items.forEach(item => {
+            const text = item.querySelector('span').textContent.toLowerCase();
+            item.style.display = text.includes(term) ? 'flex' : 'none';
+        });
+    });
 }
 
 function setupAlphabetFilter() {
     const filterGrid = document.getElementById('alphabet-grid');
     if (!filterGrid) return;
 
-    // Myanmar Consonants
-    const myanmarAlphabet = [
-        'က', 'ခ', 'ဂ', 'ဃ', 'င',
-        'စ', 'ဆ', 'ဇ', 'ဈ', 'ည',
-        'ဋ', 'ဌ', 'ဍ', 'ဎ', 'ဏ',
-        'တ', 'ထ', 'ဒ', 'ဓ', 'န',
-        'ပ', 'ဖ', 'ဗ', 'ဘ', 'မ',
-        'ယ', 'ရ', 'လ', 'ဝ', 'သ',
-        'ဟ', 'ဠ', 'အ'
-    ];
+    const myanmarAlphabet = ['က', 'ခ', 'ဂ', 'ဃ', 'င', 'စ', 'ဆ', 'ဇ', 'ဈ', 'ည', 'ဋ', 'ဌ', 'ဍ', 'ဎ', 'ဏ', 'တ', 'ထ', 'ဒ', 'ဓ', 'န', 'ပ', 'ဖ', 'ဗ', 'ဘ', 'မ', 'ယ', 'ရ', 'လ', 'ဝ', 'သ', 'ဟ', 'ဠ', 'အ'];
     
     filterGrid.innerHTML = `
-        <button class="letter-btn active" onclick="filterByLetter('All', this)">အားလုံး</button>
+        <button class="letter-btn active" onclick="filterByLetter('All', this)">All</button>
         ${myanmarAlphabet.map(letter => `
             <button class="letter-btn" onclick="filterByLetter('${letter}', this)">${letter}</button>
         `).join('')}
@@ -417,97 +378,98 @@ function toggleAlphabetModal() {
     const overlay = document.getElementById('alphabet-overlay');
     if (overlay) {
         overlay.classList.toggle('active');
-        // Prevent body scroll when modal is open
         document.body.style.overflow = overlay.classList.contains('active') ? 'hidden' : '';
     }
+}
+
+function toggleSidebar() {
+    const sidebar = document.getElementById('app-sidebar');
+    if (sidebar) sidebar.classList.toggle('active');
 }
 
 function filterByLetter(letter, btn) {
     document.querySelectorAll('.letter-btn').forEach(b => b.classList.remove('active'));
     btn.classList.add('active');
-
-    // Update trigger button text
+    
     const activeLabel = document.getElementById('active-letter');
-    if (activeLabel) {
-        activeLabel.textContent = `Filter by Letter: ${letter === 'All' ? 'အားလုံး' : letter}`;
-    }
+    if (activeLabel) activeLabel.textContent = letter === 'All' ? 'A-Z' : letter;
 
-    // Clear search input when a letter is selected
-    const searchInput = document.getElementById('search-input');
-    if (searchInput) searchInput.value = '';
-
-    // Reset category active states
-    document.querySelectorAll('.category-item').forEach(item => item.classList.remove('active'));
-
-    if (letter === 'All') {
-        filteredBooks = [...allBooks];
-    } else {
-        filteredBooks = allBooks.filter(book => {
-            const title = book.title.trim();
-            // Check if title starts with the Myanmar consonant
-            return title.startsWith(letter);
-        });
-    }
-    
-    renderBooks(filteredBooks);
-    
-    // Auto-close modal
+    applyFilters();
     toggleAlphabetModal();
-    
-    scrollToContent();
 }
 
 function filterByCategory(category) {
     document.querySelectorAll('.category-item').forEach(item => {
         item.classList.remove('active');
-        if (item.textContent === category) item.classList.add('active');
+        if (item.querySelector('span').textContent === category) item.classList.add('active');
     });
+    
+    const pageTitle = document.getElementById('page-title');
+    if (pageTitle) pageTitle.textContent = category === 'All' ? 'All Legal Books' : category;
 
-    // Clear search input when a category is selected
-    const searchInput = document.getElementById('search-input');
-    if (searchInput) searchInput.value = '';
-
-    // Reset alphabet active states
-    document.querySelectorAll('.letter-btn').forEach(btn => btn.classList.remove('active'));
-    const activeLabel = document.getElementById('active-letter');
-    if (activeLabel) activeLabel.textContent = 'Filter by Letter: အားလုံး';
-
-    if (category === 'All') {
-        filteredBooks = [...allBooks];
-    } else {
-        filteredBooks = allBooks.filter(book => book.category === category);
-    }
-    renderBooks(filteredBooks);
-    scrollToContent();
+    applyFilters();
+    
+    // Close mobile sidebar if open
+    const sidebar = document.getElementById('app-sidebar');
+    if (sidebar) sidebar.classList.remove('active');
 }
 
 function filterByAuthor(author) {
-    // Clear search input when an author is selected
-    const searchInput = document.getElementById('search-input');
-    if (searchInput) searchInput.value = '';
-
-    // Reset other filters
-    document.querySelectorAll('.letter-btn').forEach(btn => btn.classList.remove('active'));
-    document.querySelectorAll('.category-item').forEach(item => item.classList.remove('active'));
-    const activeLabel = document.getElementById('active-letter');
-    if (activeLabel) activeLabel.textContent = 'Filter by Letter: အားလုံး';
-
+    resetFilters(false);
+    const pageTitle = document.getElementById('page-title');
+    if (pageTitle) pageTitle.textContent = `Books by ${author}`;
+    
     filteredBooks = allBooks.filter(book => book.author === author);
     renderBooks(filteredBooks);
-    
-    const sectionTitle = document.getElementById('section-title');
-    if (sectionTitle) sectionTitle.textContent = `Books by ${author}`;
-    
-    scrollToContent();
 }
 
-function scrollToContent() {
-    const content = document.querySelector('.content');
-    if (content) {
-        window.scrollTo({
-            top: content.offsetTop - 100,
-            behavior: 'smooth'
-        });
+function applyFilters() {
+    const searchTerm = document.getElementById('search-input')?.value.toLowerCase() || '';
+    const selectedYear = document.getElementById('year-filter')?.value || 'All';
+    const activeCategoryItem = document.querySelector('.category-item.active');
+    const selectedCategory = activeCategoryItem ? activeCategoryItem.querySelector('span').textContent : 'All';
+    const activeLetterBtn = document.querySelector('.letter-btn.active');
+    const selectedLetter = activeLetterBtn ? activeLetterBtn.textContent : 'All';
+
+    filteredBooks = allBooks.filter(book => {
+        const matchesSearch = !searchTerm || 
+            book.title.toLowerCase().includes(searchTerm) || 
+            book.author.toLowerCase().includes(searchTerm) ||
+            book.category.toLowerCase().includes(searchTerm);
+        
+        const matchesYear = selectedYear === 'All' || book.year === selectedYear;
+        const matchesCategory = selectedCategory === 'All' || book.category === selectedCategory;
+        const matchesLetter = selectedLetter === 'All' || book.title.trim().startsWith(selectedLetter);
+
+        return matchesSearch && matchesYear && matchesCategory && matchesLetter;
+    });
+
+    renderBooks(filteredBooks);
+}
+
+function resetFilters(render = true) {
+    const searchInput = document.getElementById('search-input');
+    const yearFilter = document.getElementById('year-filter');
+    if (searchInput) searchInput.value = '';
+    if (yearFilter) yearFilter.value = 'All';
+    
+    document.querySelectorAll('.category-item').forEach(item => item.classList.remove('active'));
+    const allCat = document.querySelector('.category-item:first-child');
+    if (allCat) allCat.classList.add('active');
+    
+    document.querySelectorAll('.letter-btn').forEach(btn => btn.classList.remove('active'));
+    const allLetter = document.querySelector('.letter-btn:first-child');
+    if (allLetter) allLetter.classList.add('active');
+    
+    const activeLabel = document.getElementById('active-letter');
+    if (activeLabel) activeLabel.textContent = 'A-Z';
+    
+    const pageTitle = document.getElementById('page-title');
+    if (pageTitle) pageTitle.textContent = 'All Legal Books';
+
+    if (render) {
+        filteredBooks = [...allBooks];
+        renderBooks(filteredBooks);
     }
 }
 
@@ -519,17 +481,11 @@ function setupSearch() {
     searchInput.addEventListener('input', (e) => {
         const term = e.target.value.toLowerCase();
         
-        // Handle search suggestions (ghost text)
         if (term.length > 0) {
-            const match = allBooks.find(book => 
-                book.title.toLowerCase().startsWith(term)
-            );
-            
+            const match = allBooks.find(book => book.title.toLowerCase().startsWith(term));
             if (match && suggestionSpan) {
-                // Show suggestion with original casing from the user's input
-                const originalInput = e.target.value;
-                const suggestionSuffix = match.title.slice(originalInput.length);
-                suggestionSpan.textContent = originalInput + suggestionSuffix;
+                const suggestionSuffix = match.title.slice(term.length);
+                suggestionSpan.textContent = e.target.value + suggestionSuffix;
             } else if (suggestionSpan) {
                 suggestionSpan.textContent = '';
             }
@@ -537,46 +493,16 @@ function setupSearch() {
             suggestionSpan.textContent = '';
         }
 
-        // Auto-Reset Alphabet Filter Logic
-        if (term.length > 0) {
-            // 1. Remove 'active' class from all letter buttons
-            document.querySelectorAll('.letter-btn').forEach(btn => btn.classList.remove('active'));
-            
-            // 2. Reset the label on the filter trigger
-            const activeLabel = document.getElementById('active-letter');
-            if (activeLabel) {
-                activeLabel.textContent = 'Filter by Letter: အားလုံး';
-            }
-            
-            // 3. Optional: Reset category active states if any
-            document.querySelectorAll('.category-item').forEach(item => item.classList.remove('active'));
-        } else {
-            // If search is cleared, we could potentially re-activate 'All'
-            const allBtn = document.querySelector('.letter-btn[onclick*="\'All\'"]');
-            if (allBtn) allBtn.classList.add('active');
-        }
-
-        // Filtering: Search through the entire allBooks array for a clean start
-        filteredBooks = allBooks.filter(book => 
-            (book.title && book.title.toLowerCase().includes(term)) ||
-            (book.author && book.author.toLowerCase().includes(term)) ||
-            (book.category && book.category.toLowerCase().includes(term))
-        );
-        
-        renderBooks(filteredBooks);
+        applyFilters();
     });
 
-    // Handle Tab or Right Arrow to accept suggestion
     searchInput.addEventListener('keydown', (e) => {
         if ((e.key === 'Tab' || e.key === 'ArrowRight') && suggestionSpan && suggestionSpan.textContent) {
             const currentInput = searchInput.value;
             const suggestion = suggestionSpan.textContent;
-            
-            // If the cursor is at the end of the input, accept the suggestion
             if (searchInput.selectionStart === currentInput.length && suggestion.length > currentInput.length) {
                 e.preventDefault();
                 searchInput.value = suggestion;
-                // Trigger input event to update results
                 searchInput.dispatchEvent(new Event('input'));
             }
         }
