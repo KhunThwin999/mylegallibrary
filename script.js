@@ -1,6 +1,6 @@
 // Configuration
 const CONFIG = {
-    GOOGLE_SHEET_URL: 'https://opensheet.elk.sh/1HCOpKGKhv_Ggm3r6dtvldqUynv5z6vLy98jjeOSrS4I/Sheet1', 
+    GOOGLE_SHEET_URL: 'https://opensheet.elk.sh/1HCOpKGKhv_Ggm3r6dtvldqUynv5z6vLy98jjeOSrS4I/Sheet1',
     LOCAL_JSON: 'books.json'
 };
 
@@ -12,6 +12,7 @@ let fetchPromise = null;
 const CATEGORY_ICONS = {
     'All': 'fa-th-large',
     'Law & Constitution': 'fa-balance-scale',
+    'Constitution Law': 'fa-balance-scale',
     'Police Procedure': 'fa-shield-alt',
     'Penal Code': 'fa-gavel',
     'Civil Law': 'fa-users',
@@ -19,6 +20,8 @@ const CATEGORY_ICONS = {
     'Land Law': 'fa-map-marked-alt',
     'Business Law': 'fa-briefcase',
     'International Law': 'fa-globe',
+    'Court Procedures': 'fa-gavel',
+    'Myanmar Law': 'fa-landmark',
     'Default': 'fa-book'
 };
 
