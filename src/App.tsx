@@ -335,8 +335,42 @@ export default function App() {
                 ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'}
               `}>
                 <div className="flex items-center justify-between mb-6 md:hidden">
-                  <h3 className="font-bold text-lg">Categories</h3>
-                  <button onClick={() => setIsSidebarOpen(false)}><X className="w-6 h-6" /></button>
+                  <h3 className="font-bold text-lg text-navy">Menu & Categories</h3>
+                  <button onClick={() => setIsSidebarOpen(false)} className="p-2 hover:bg-slate-100 rounded-lg transition-colors">
+                    <X className="w-6 h-6 text-slate-400" />
+                  </button>
+                </div>
+
+                {/* Mobile Quick Navigation */}
+                <div className="md:hidden mb-8 space-y-3">
+                  <button
+                    onClick={() => {
+                      setCurrentView('text-dictionary');
+                      setIsSidebarOpen(false);
+                    }}
+                    className="w-full flex items-center gap-4 px-5 py-4 bg-navy text-white rounded-2xl font-bold shadow-xl shadow-navy/20 transition-all active:scale-[0.98]"
+                  >
+                    <div className="w-8 h-8 bg-white/10 rounded-lg flex items-center justify-center">
+                      <Book className="w-5 h-5" />
+                    </div>
+                    <div className="flex flex-col items-start">
+                      <span className="text-sm">Legal Dictionary</span>
+                      <span className="text-[10px] opacity-60 font-medium uppercase tracking-widest">Myanmar-English</span>
+                    </div>
+                  </button>
+                  
+                  <button
+                    onClick={() => {
+                      setCurrentView('about');
+                      setIsSidebarOpen(false);
+                    }}
+                    className="w-full flex items-center gap-4 px-5 py-4 bg-white border border-slate-200 text-slate-600 rounded-2xl font-bold transition-all active:scale-[0.98]"
+                  >
+                    <div className="w-8 h-8 bg-slate-50 rounded-lg flex items-center justify-center">
+                      <Users className="w-5 h-5 text-slate-400" />
+                    </div>
+                    <span className="text-sm">About Library</span>
+                  </button>
                 </div>
 
                 <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
