@@ -18,9 +18,13 @@ import {
   Menu,
   Filter,
   Sparkles,
-  Scale
+  Scale,
+  Mail,
+  Copy,
+  Check
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
+import AboutPage from './components/AboutPage';
 
 // Types
 interface LegalBook {
@@ -78,7 +82,16 @@ export default function App() {
   const [isAlphabetModalOpen, setIsAlphabetModalOpen] = useState(false);
   const [activePdf, setActivePdf] = useState<string | null>(null);
   const [viewerTitle, setViewerTitle] = useState('');
+  const [emailCopied, setEmailCopied] = useState(false);
+  const supportEmail = 'support@myanmarlegallibrary.com';
+
+  const copyEmail = () => {
+    navigator.clipboard.writeText(supportEmail);
+    setEmailCopied(true);
+    setTimeout(() => setEmailCopied(false), 2000);
+  };
   const [currentPage, setCurrentPage] = useState(1);
+  const [currentView, setCurrentView] = useState<'library' | 'about'>('library');
   
   useEffect(() => {
     const fetchBooks = async () => {
@@ -182,7 +195,7 @@ export default function App() {
   }, [books]);
 
   return (
-    <div className="min-h-screen bg-[#FDFCFB] font-sans text-slate-900">
+    <div className="min-h-screen bg-off-white font-sans text-slate-900">
       {/* Loader */}
       <AnimatePresence>
         {loading && (
@@ -193,8 +206,8 @@ export default function App() {
           >
             <div className="relative w-24 h-24">
               <div className="absolute inset-0 border-4 border-slate-100 rounded-full"></div>
-              <div className="absolute inset-0 border-4 border-t-indigo-600 rounded-full animate-spin"></div>
-              <Gavel className="absolute inset-0 m-auto w-10 h-10 text-indigo-600" />
+              <div className="absolute inset-0 border-4 border-t-navy rounded-full animate-spin"></div>
+              <Gavel className="absolute inset-0 m-auto w-10 h-10 text-navy" />
             </div>
             <p className="mt-6 text-slate-500 font-medium tracking-widest uppercase text-sm">Preparing Legal Library</p>
           </motion.div>
@@ -204,28 +217,41 @@ export default function App() {
       {/* Header */}
       <header className="sticky top-0 z-40 bg-white/80 backdrop-blur-md border-b border-slate-200">
         <div className="max-w-7xl mx-auto px-4 h-20 flex items-center justify-between">
-          <div className="flex items-center gap-3 text-indigo-900 font-bold text-2xl tracking-tight">
-            <div className="w-10 h-10 bg-indigo-900 text-white rounded-xl flex items-center justify-center shadow-lg shadow-indigo-200">
+          <button 
+            onClick={() => setCurrentView('library')}
+            className="flex items-center gap-3 text-navy font-bold text-2xl tracking-tight hover:opacity-80 transition-opacity"
+          >
+            <div className="w-10 h-10 bg-navy text-white rounded-xl flex items-center justify-center shadow-lg shadow-slate-200">
               <Scale className="w-6 h-6" />
             </div>
-            <div className="flex flex-col leading-none">
+            <div className="flex flex-col leading-none text-left">
               <span className="text-lg">Myanmar Legal</span>
               <div className="flex items-center gap-2">
                 <span className="text-xs font-medium text-slate-400 uppercase tracking-widest">Library</span>
                 {!loading && books.length > 0 && (
-                  <span className="px-1.5 py-0.5 bg-indigo-100 text-indigo-600 text-[10px] font-bold rounded-md">
+                  <span className="px-1.5 py-0.5 bg-navy text-white text-[10px] font-bold rounded-md shadow-sm">
                     {books.length} Books
                   </span>
                 )}
               </div>
             </div>
-          </div>
+          </button>
           
           <nav className="hidden md:flex items-center gap-10 text-sm font-semibold text-slate-500">
-            <a href="#" className="text-indigo-600 border-b-2 border-indigo-600 pb-1">Home</a>
-            <a href="#categories" className="hover:text-indigo-600 transition-colors">Categories</a>
-            <a href="#latest" className="hover:text-indigo-600 transition-colors">Latest</a>
-            <a href="#about" className="hover:text-indigo-600 transition-colors">About</a>
+            <button 
+              onClick={() => setCurrentView('library')}
+              className={`${currentView === 'library' ? 'text-navy border-b-2 border-navy pb-1' : 'hover:text-navy transition-colors'}`}
+            >
+              Home
+            </button>
+            <a href="#categories" className="hover:text-navy transition-colors">Categories</a>
+            <a href="#latest" className="hover:text-navy transition-colors">Latest</a>
+            <button 
+              onClick={() => setCurrentView('about')}
+              className={`${currentView === 'about' ? 'text-navy border-b-2 border-navy pb-1' : 'hover:text-navy transition-colors'}`}
+            >
+              About
+            </button>
           </nav>
 
           <div className="flex items-center gap-4">
@@ -239,260 +265,274 @@ export default function App() {
         </div>
       </header>
 
-      {/* Hero / Featured Section */}
-      <AnimatePresence>
-        {!loading && featuredBooks.length > 0 && selectedCategory === 'All' && searchTerm === '' && (
-          <motion.section 
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="max-w-7xl mx-auto px-4 pt-8"
+      {/* Main Content Area */}
+      <AnimatePresence mode="wait">
+        {currentView === 'library' ? (
+          <motion.div
+            key="library"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
           >
-            <div className="relative overflow-hidden rounded-[2.5rem] bg-indigo-900 text-white p-8 md:p-16">
-              <div className="absolute top-0 right-0 w-1/2 h-full opacity-10 pointer-events-none">
-                <Scale className="w-full h-full -rotate-12 translate-x-1/4" />
-              </div>
-              <div className="relative z-10 max-w-2xl">
-                <div className="inline-flex items-center gap-2 px-3 py-1 bg-white/10 backdrop-blur-md rounded-full text-[10px] font-bold uppercase tracking-widest mb-6 border border-white/20">
-                  <Sparkles className="w-3 h-3 text-indigo-300" />
-                  Featured Resource
-                </div>
-                <h2 className="text-4xl md:text-6xl font-bold mb-6 leading-[1.1] tracking-tight">
-                  {featuredBooks[0].title}
-                </h2>
-                <p className="text-indigo-100 text-lg mb-10 leading-relaxed opacity-80">
-                  {featuredBooks[0].description || "Explore the foundational principles of Myanmar's legal system with this comprehensive guide."}
-                </p>
-                <div className="flex flex-wrap gap-4">
-                  <button 
-                    onClick={() => openReader(featuredBooks[0].read, featuredBooks[0].title)}
-                    className="px-8 py-4 bg-white text-indigo-900 rounded-2xl font-bold hover:bg-indigo-50 transition-all shadow-xl shadow-indigo-950/20 flex items-center gap-2"
-                  >
-                    <BookOpen className="w-5 h-5" />
-                    Read Now
-                  </button>
-                  <a 
-                    href={featuredBooks[0].file}
-                    target="_blank"
-                    className="px-8 py-4 bg-indigo-800 text-white rounded-2xl font-bold hover:bg-indigo-700 transition-all border border-indigo-700 flex items-center gap-2"
-                  >
-                    <Download className="w-5 h-5" />
-                    Download PDF
-                  </a>
-                </div>
-              </div>
-            </div>
-          </motion.section>
-        )}
-      </AnimatePresence>
-
-      <div className="max-w-7xl mx-auto px-4 py-8 flex flex-col md:flex-row gap-8">
-        {/* Sidebar */}
-        <aside className={`
-          fixed inset-y-0 left-0 z-50 w-72 bg-white border-r border-slate-200 p-6 transform transition-transform duration-300 md:relative md:translate-x-0 md:bg-transparent md:border-none md:p-0 md:z-0
-          ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'}
-        `}>
-          <div className="flex items-center justify-between mb-6 md:hidden">
-            <h3 className="font-bold text-lg">Categories</h3>
-            <button onClick={() => setIsSidebarOpen(false)}><X className="w-6 h-6" /></button>
-          </div>
-
-          <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-            <div className="p-4 border-b border-slate-100 bg-slate-50/50">
-              <h3 className="font-semibold text-slate-800">Legal Categories</h3>
-            </div>
-            <ul className="p-2">
-              {categories.map(cat => {
-                const Icon = CATEGORY_ICONS[cat] || CATEGORY_ICONS['Default'];
-                return (
-                  <li key={cat}>
-                    <button
-                      onClick={() => {
-                        setSelectedCategory(cat);
-                        setIsSidebarOpen(false);
-                      }}
-                      className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all ${
-                        selectedCategory === cat 
-                          ? 'bg-indigo-50 text-indigo-700 shadow-sm' 
-                          : 'text-slate-600 hover:bg-slate-50'
-                      }`}
-                    >
-                      <Icon className={`w-4 h-4 ${selectedCategory === cat ? 'text-indigo-600' : 'text-slate-400'}`} />
-                      {cat}
-                    </button>
-                  </li>
-                );
-              })}
-            </ul>
-          </div>
-        </aside>
-
-        {/* Main Content */}
-        <main className="flex-1 min-w-0">
-          <div className="mb-8">
-            <div className="flex items-center gap-2 text-xs text-slate-400 mb-4">
-              <span>Home</span>
-              <ChevronRight className="w-3 h-3" />
-              <span className="text-slate-600 font-medium">Legal Books</span>
-            </div>
-            
-            <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-6">
-              <div>
-                <h1 className="text-3xl font-bold text-slate-900 tracking-tight mb-2 flex items-center gap-3">
-                  {selectedCategory === 'All' ? 'All Legal Books' : selectedCategory}
-                  {!loading && (
-                    <span className="text-sm font-medium px-2.5 py-1 bg-slate-100 text-slate-500 rounded-lg">
-                      {filteredBooks.length} {filteredBooks.length === 1 ? 'book' : 'books'}
-                    </span>
-                  )}
-                </h1>
-                <p className="text-slate-500">Browse our comprehensive collection of Myanmar legal resources.</p>
-              </div>
-
-              <div className="flex flex-col sm:flex-row gap-4">
-                <div className="relative group">
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-indigo-600 transition-colors" />
-                  <input 
-                    type="text"
-                    placeholder="Search books, authors..."
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    className="pl-10 pr-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm w-full sm:w-64 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none transition-all shadow-sm"
-                  />
-                </div>
-
-                <div className="flex gap-2">
-                  <select 
-                    value={selectedYear}
-                    onChange={(e) => setSelectedYear(e.target.value)}
-                    className="px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none transition-all shadow-sm cursor-pointer"
-                  >
-                    {years.map(y => <option key={y} value={y}>{y === 'All' ? 'All Years' : y}</option>)}
-                  </select>
-
-                  <button 
-                    onClick={() => setIsAlphabetModalOpen(true)}
-                    className="flex items-center gap-2 px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm font-medium hover:bg-slate-50 transition-all shadow-sm"
-                  >
-                    <Filter className="w-4 h-4 text-slate-400" />
-                    <span>{selectedLetter === 'All' ? 'A-Z' : selectedLetter}</span>
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Book Grid */}
-          {paginatedBooks.length > 0 ? (
-            <>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                {paginatedBooks.map((book) => (
-                  <motion.div 
-                    layout
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    key={book.id}
-                    className="group bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300"
-                  >
-                    <div className="relative aspect-[2/3] overflow-hidden bg-slate-100">
-                      <img 
-                        src={book.cover} 
-                        alt={book.title}
-                        referrerPolicy="no-referrer"
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                      />
-                      {book.featured && (
-                        <div className="absolute top-3 left-3 px-2 py-1 bg-indigo-600 text-white text-[10px] font-bold uppercase tracking-wider rounded-md shadow-lg">
-                          Featured
-                        </div>
-                      )}
-                      <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-3 p-4">
+            {/* Hero / Featured Section */}
+            <AnimatePresence>
+              {!loading && featuredBooks.length > 0 && selectedCategory === 'All' && searchTerm === '' && (
+                <motion.section 
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="max-w-7xl mx-auto px-4 pt-8"
+                >
+                  <div className="relative overflow-hidden rounded-[2.5rem] bg-navy text-white p-8 md:p-16">
+                    <div className="absolute top-0 right-0 w-1/2 h-full opacity-10 pointer-events-none">
+                      <Scale className="w-full h-full -rotate-12 translate-x-1/4" />
+                    </div>
+                    <div className="relative z-10 max-w-2xl">
+                      <div className="inline-flex items-center gap-2 px-3 py-1 bg-white/10 backdrop-blur-md rounded-full text-[10px] font-bold uppercase tracking-widest mb-6 border border-white/20">
+                        <Sparkles className="w-3 h-3 text-slate-300" />
+                        Featured Resource
+                      </div>
+                      <h2 className="text-4xl md:text-6xl font-bold mb-6 leading-[1.1] tracking-tight">
+                        {featuredBooks[0].title}
+                      </h2>
+                      <p className="text-slate-200 text-lg mb-10 leading-relaxed opacity-80">
+                        {featuredBooks[0].description || "Explore the foundational principles of Myanmar's legal system with this comprehensive guide."}
+                      </p>
+                      <div className="flex flex-wrap gap-4">
                         <button 
-                          onClick={() => openReader(book.read, book.title)}
-                          className="p-3 bg-white text-indigo-600 rounded-full hover:bg-indigo-600 hover:text-white transition-all shadow-xl"
+                          onClick={() => openReader(featuredBooks[0].read, featuredBooks[0].title)}
+                          className="px-8 py-4 bg-white text-navy rounded-2xl font-bold hover:bg-slate-50 transition-all shadow-xl shadow-navy/20 flex items-center gap-2"
                         >
                           <BookOpen className="w-5 h-5" />
+                          Read Now
                         </button>
                         <a 
-                          href={book.file}
+                          href={featuredBooks[0].file}
                           target="_blank"
-                          className="p-3 bg-white text-slate-600 rounded-full hover:bg-slate-800 hover:text-white transition-all shadow-xl"
+                          className="px-8 py-4 bg-muted-green text-white rounded-2xl font-bold hover:bg-green-700 transition-all border border-green-700 flex items-center gap-2"
                         >
                           <Download className="w-5 h-5" />
+                          Download PDF
                         </a>
                       </div>
                     </div>
-                    <div className="p-5">
-                      <span className="text-[10px] font-bold text-indigo-600 uppercase tracking-widest mb-2 block">{book.category}</span>
-                      <h3 className="font-bold text-slate-900 line-clamp-2 mb-1 group-hover:text-indigo-600 transition-colors leading-tight">{book.title}</h3>
-                      <p className="text-xs text-slate-500 mb-4">By {book.author}</p>
-                      <div className="flex items-center justify-between pt-4 border-t border-slate-50">
-                        <span className="text-[10px] font-medium text-slate-400">{book.year}</span>
-                        <button 
-                           onClick={() => openReader(book.read, book.title)}
-                          className="text-xs font-bold text-indigo-600 hover:text-indigo-700 flex items-center gap-1"
+                  </div>
+                </motion.section>
+              )}
+            </AnimatePresence>
+
+            <div className="max-w-7xl mx-auto px-4 py-8 flex flex-col md:flex-row gap-8">
+              {/* Sidebar */}
+              <aside className={`
+                fixed inset-y-0 left-0 z-50 w-72 bg-white border-r border-slate-200 p-6 transform transition-transform duration-300 md:relative md:translate-x-0 md:bg-transparent md:border-none md:p-0 md:z-0
+                ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'}
+              `}>
+                <div className="flex items-center justify-between mb-6 md:hidden">
+                  <h3 className="font-bold text-lg">Categories</h3>
+                  <button onClick={() => setIsSidebarOpen(false)}><X className="w-6 h-6" /></button>
+                </div>
+
+                <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+                  <div className="p-4 border-b border-slate-100 bg-slate-50/50">
+                    <h3 className="font-semibold text-slate-800">Legal Categories</h3>
+                  </div>
+                  <ul className="p-2">
+                    {categories.map(cat => {
+                      const Icon = CATEGORY_ICONS[cat] || CATEGORY_ICONS['Default'];
+                      return (
+                        <li key={cat}>
+                          <button
+                            onClick={() => {
+                              setSelectedCategory(cat);
+                              setIsSidebarOpen(false);
+                            }}
+                            className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all ${
+                              selectedCategory === cat 
+                                ? 'bg-slate-50 text-navy shadow-sm' 
+                                : 'text-slate-600 hover:bg-slate-50'
+                            }`}
+                          >
+                            <Icon className={`w-4 h-4 ${selectedCategory === cat ? 'text-navy' : 'text-slate-400'}`} />
+                            {cat}
+                          </button>
+                        </li>
+                      );
+                    })}
+                  </ul>
+                </div>
+              </aside>
+
+              {/* Main Content */}
+              <main className="flex-1 min-w-0">
+                <div className="mb-8">
+                  <div className="flex items-center gap-2 text-xs text-slate-400 mb-4">
+                    <span>Home</span>
+                    <ChevronRight className="w-3 h-3" />
+                    <span className="text-slate-600 font-medium">Legal Books</span>
+                  </div>
+                  
+                  <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-6">
+                    <div>
+                      <h1 className="text-3xl font-bold text-slate-900 tracking-tight mb-2 flex items-center gap-3">
+                        {selectedCategory === 'All' ? 'All Legal Books' : selectedCategory}
+                        {!loading && (
+                          <span className="text-sm font-bold px-3 py-1 bg-navy text-white rounded-lg shadow-md shadow-slate-200">
+                            {filteredBooks.length} {filteredBooks.length === 1 ? 'book' : 'books'}
+                          </span>
+                        )}
+                      </h1>
+                      <p className="text-slate-500">Browse our comprehensive collection of Myanmar legal resources.</p>
+                    </div>
+
+                    <div className="flex flex-col sm:flex-row gap-4">
+                      <div className="relative group">
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-navy transition-colors" />
+                        <input 
+                          type="text"
+                          placeholder="Search books, authors..."
+                          value={searchTerm}
+                          onChange={(e) => setSearchTerm(e.target.value)}
+                          className="pl-10 pr-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm w-full sm:w-64 focus:ring-2 focus:ring-navy/20 focus:border-navy outline-none transition-all shadow-sm"
+                        />
+                      </div>
+
+                      <div className="flex gap-2">
+                        <select 
+                          value={selectedYear}
+                          onChange={(e) => setSelectedYear(e.target.value)}
+                          className="px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-navy/20 focus:border-navy outline-none transition-all shadow-sm cursor-pointer"
                         >
-                          Read Now <ChevronRight className="w-3 h-3" />
+                          {years.map(y => <option key={y} value={y}>{y === 'All' ? 'All Years' : y}</option>)}
+                        </select>
+
+                        <button 
+                          onClick={() => setIsAlphabetModalOpen(true)}
+                          className="flex items-center gap-2 px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm font-medium hover:bg-slate-50 transition-all shadow-sm"
+                        >
+                          <Filter className="w-4 h-4 text-slate-400" />
+                          <span>{selectedLetter === 'All' ? 'A-Z' : selectedLetter}</span>
                         </button>
                       </div>
                     </div>
-                  </motion.div>
-                ))}
-              </div>
-
-              {/* Pagination Bar */}
-              {totalPages > 1 && (
-                <div className="mt-12 flex items-center justify-center gap-2">
-                  <button
-                    onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
-                    disabled={currentPage === 1}
-                    className="p-2 rounded-xl border border-slate-200 bg-white text-slate-600 hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-sm"
-                  >
-                    <ChevronLeft className="w-5 h-5" />
-                  </button>
-                  
-                  <div className="flex items-center gap-1">
-                    {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
-                      <button
-                        key={page}
-                        onClick={() => setCurrentPage(page)}
-                        className={`w-10 h-10 rounded-xl text-sm font-bold transition-all ${
-                          currentPage === page
-                            ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-200'
-                            : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-50 shadow-sm'
-                        }`}
-                      >
-                        {page}
-                      </button>
-                    ))}
                   </div>
-
-                  <button
-                    onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
-                    disabled={currentPage === totalPages}
-                    className="p-2 rounded-xl border border-slate-200 bg-white text-slate-600 hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-sm"
-                  >
-                    <ChevronRight className="w-5 h-5" />
-                  </button>
                 </div>
-              )}
-            </>
-          ) : (
-            <div className="flex flex-col items-center justify-center py-20 text-center">
-              <div className="w-20 h-20 bg-slate-100 rounded-full flex items-center justify-center mb-6">
-                <Book className="w-10 h-10 text-slate-300" />
-              </div>
-              <h3 className="text-xl font-bold text-slate-900 mb-2">No books found</h3>
-              <p className="text-slate-500 max-w-xs mx-auto mb-8">Try adjusting your search or filters to find what you're looking for.</p>
-              <button 
-                onClick={resetFilters}
-                className="px-6 py-2.5 bg-indigo-600 text-white rounded-xl font-bold hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-200"
-              >
-                Clear All Filters
-              </button>
+
+                {/* Book Grid */}
+                {paginatedBooks.length > 0 ? (
+                  <>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                      {paginatedBooks.map((book) => (
+                        <motion.div 
+                          layout
+                          initial={{ opacity: 0, y: 20 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          key={book.id}
+                          className="group bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300"
+                        >
+                          <div className="relative aspect-[2/3] overflow-hidden bg-slate-100">
+                            <img 
+                              src={book.cover} 
+                              alt={book.title}
+                              referrerPolicy="no-referrer"
+                              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                            />
+                            {book.featured && (
+                              <div className="absolute top-3 left-3 px-2 py-1 bg-slate-gray text-white text-[10px] font-bold uppercase tracking-wider rounded-md shadow-lg">
+                                Featured
+                              </div>
+                            )}
+                            <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-3 p-4">
+                              <button 
+                                onClick={() => openReader(book.read, book.title)}
+                                className="p-3 bg-white text-navy rounded-full hover:bg-navy hover:text-white transition-all shadow-xl"
+                              >
+                                <BookOpen className="w-5 h-5" />
+                              </button>
+                              <a 
+                                href={book.file}
+                                target="_blank"
+                                className="p-3 bg-white text-slate-600 rounded-full hover:bg-muted-green hover:text-white transition-all shadow-xl"
+                              >
+                                <Download className="w-5 h-5" />
+                              </a>
+                            </div>
+                          </div>
+                          <div className="p-5">
+                            <span className="text-[10px] font-bold text-slate-gray uppercase tracking-widest mb-2 block">{book.category}</span>
+                            <h3 className="font-bold text-slate-900 line-clamp-2 mb-1 group-hover:text-navy transition-colors leading-tight">{book.title}</h3>
+                            <p className="text-xs text-slate-500 mb-4">By {book.author}</p>
+                            <div className="flex items-center justify-between pt-4 border-t border-slate-50">
+                              <span className="text-[10px] font-medium text-slate-400">{book.year}</span>
+                              <button 
+                                onClick={() => openReader(book.read, book.title)}
+                                className="text-xs font-bold text-navy hover:text-navy/80 flex items-center gap-1"
+                              >
+                                Read Now <ChevronRight className="w-3 h-3" />
+                              </button>
+                            </div>
+                          </div>
+                        </motion.div>
+                      ))}
+                    </div>
+
+                    {/* Pagination Bar */}
+                    {totalPages > 1 && (
+                      <div className="mt-12 flex items-center justify-center gap-2">
+                        <button
+                          onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                          disabled={currentPage === 1}
+                          className="p-2 rounded-xl border border-slate-200 bg-white text-slate-600 hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-sm"
+                        >
+                          <ChevronLeft className="w-5 h-5" />
+                        </button>
+                        
+                        <div className="flex items-center gap-1">
+                          {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
+                            <button
+                              key={page}
+                              onClick={() => setCurrentPage(page)}
+                              className={`w-10 h-10 rounded-xl text-sm font-bold transition-all ${
+                                currentPage === page
+                                  ? 'bg-navy text-white shadow-lg shadow-slate-200'
+                                  : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-50 shadow-sm'
+                              }`}
+                            >
+                              {page}
+                            </button>
+                          ))}
+                        </div>
+
+                        <button
+                          onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                          disabled={currentPage === totalPages}
+                          className="p-2 rounded-xl border border-slate-200 bg-white text-slate-600 hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-sm"
+                        >
+                          <ChevronRight className="w-5 h-5" />
+                        </button>
+                      </div>
+                    )}
+                  </>
+                ) : (
+                  <div className="flex flex-col items-center justify-center py-20 text-center">
+                    <div className="w-20 h-20 bg-slate-100 rounded-full flex items-center justify-center mb-6">
+                      <Book className="w-10 h-10 text-slate-300" />
+                    </div>
+                    <h3 className="text-xl font-bold text-slate-900 mb-2">No books found</h3>
+                    <p className="text-slate-500 max-w-xs mx-auto mb-8">Try adjusting your search or filters to find what you're looking for.</p>
+                    <button 
+                      onClick={resetFilters}
+                      className="px-6 py-2.5 bg-navy text-white rounded-xl font-bold hover:bg-navy/90 transition-all shadow-lg shadow-slate-200"
+                    >
+                      Clear All Filters
+                    </button>
+                  </div>
+                )}
+              </main>
             </div>
-          )}
-        </main>
-      </div>
+          </motion.div>
+        ) : (
+          <AboutPage onBack={() => setCurrentView('library')} />
+        )}
+      </AnimatePresence>
 
       {/* Alphabet Modal */}
       <AnimatePresence>
@@ -522,7 +562,7 @@ export default function App() {
                   <button 
                     onClick={() => { setSelectedLetter('All'); setIsAlphabetModalOpen(false); }}
                     className={`aspect-square flex items-center justify-center rounded-xl font-bold transition-all ${
-                      selectedLetter === 'All' ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-200' : 'bg-slate-50 text-slate-600 hover:bg-slate-100'
+                      selectedLetter === 'All' ? 'bg-navy text-white shadow-lg shadow-slate-200' : 'bg-slate-50 text-slate-600 hover:bg-slate-100'
                     }`}
                   >
                     All
@@ -532,7 +572,7 @@ export default function App() {
                       key={letter}
                       onClick={() => { setSelectedLetter(letter); setIsAlphabetModalOpen(false); }}
                       className={`aspect-square flex items-center justify-center rounded-xl font-bold text-lg transition-all ${
-                        selectedLetter === letter ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-200' : 'bg-slate-50 text-slate-600 hover:bg-slate-100'
+                        selectedLetter === letter ? 'bg-navy text-white shadow-lg shadow-slate-200' : 'bg-slate-50 text-slate-600 hover:bg-slate-100'
                       }`}
                     >
                       {letter}
@@ -556,7 +596,7 @@ export default function App() {
           >
             <div className="h-16 bg-slate-800 px-6 flex items-center justify-between text-white border-b border-slate-700">
               <div className="flex items-center gap-3">
-                <BookOpen className="w-5 h-5 text-indigo-400" />
+                <BookOpen className="w-5 h-5 text-slate-400" />
                 <h3 className="font-semibold truncate max-w-md">{viewerTitle}</h3>
               </div>
               <button 
@@ -581,11 +621,19 @@ export default function App() {
         <div className="max-w-7xl mx-auto px-4">
           <div className="flex flex-col md:flex-row justify-between gap-12 mb-12">
             <div className="max-w-sm">
-              <div className="flex items-center gap-3 text-indigo-900 font-bold text-xl mb-4">
-                <div className="w-8 h-8 bg-indigo-900 text-white rounded-lg flex items-center justify-center">
+              <div className="flex items-center gap-3 text-navy font-bold text-xl mb-4">
+                <button 
+                  onClick={() => setCurrentView('library')}
+                  className="w-8 h-8 bg-navy text-white rounded-lg flex items-center justify-center hover:opacity-80 transition-opacity"
+                >
                   <Scale className="w-5 h-5" />
-                </div>
-                <span>Myanmar Legal Library</span>
+                </button>
+                <button 
+                  onClick={() => setCurrentView('library')}
+                  className="hover:text-navy transition-colors"
+                >
+                  Myanmar Legal Library
+                </button>
               </div>
               <p className="text-slate-500 leading-relaxed text-sm">
                 Your digital gateway to Myanmar's legal knowledge. Empowering citizens and professionals with accessible legal resources.
@@ -595,27 +643,54 @@ export default function App() {
               <div>
                 <h4 className="font-bold text-slate-900 mb-4 text-sm uppercase tracking-wider">Resources</h4>
                 <ul className="space-y-2 text-sm text-slate-500">
-                  <li><a href="#" className="hover:text-indigo-600 transition-colors">Constitution</a></li>
-                  <li><a href="#" className="hover:text-indigo-600 transition-colors">Civil Law</a></li>
-                  <li><a href="#" className="hover:text-indigo-600 transition-colors">Criminal Law</a></li>
+                  <li><a href="#" className="hover:text-navy transition-colors">Constitution</a></li>
+                  <li><a href="#" className="hover:text-navy transition-colors">Civil Law</a></li>
+                  <li><a href="#" className="hover:text-navy transition-colors">Criminal Law</a></li>
                 </ul>
               </div>
               <div>
                 <h4 className="font-bold text-slate-900 mb-4 text-sm uppercase tracking-wider">Library</h4>
                 <ul className="space-y-2 text-sm text-slate-500">
-                  <li><a href="#" className="hover:text-indigo-600 transition-colors">About Us</a></li>
-                  <li><a href="#" className="hover:text-indigo-600 transition-colors">Contact</a></li>
-                  <li><a href="#" className="hover:text-indigo-600 transition-colors">Privacy Policy</a></li>
+                  <li><button onClick={() => setCurrentView('about')} className="hover:text-navy transition-colors">About Us</button></li>
+                  <li><a href="#" className="hover:text-navy transition-colors">Contact</a></li>
+                  <li><a href="#" className="hover:text-navy transition-colors">Privacy Policy</a></li>
                 </ul>
+              </div>
+              <div>
+                <h4 className="font-bold text-slate-900 mb-4 text-sm uppercase tracking-wider">Support</h4>
+                <div className="space-y-3">
+                  <div className="flex flex-col gap-2">
+                    <a href={`mailto:${supportEmail}`} className="text-sm text-navy font-medium hover:underline flex items-center gap-2">
+                      <Mail className="w-4 h-4" />
+                      {supportEmail}
+                    </a>
+                    <button 
+                      onClick={copyEmail}
+                      className="flex items-center gap-2 text-[10px] font-bold text-slate-400 hover:text-navy transition-colors uppercase tracking-widest"
+                    >
+                      {emailCopied ? (
+                        <>
+                          <Check className="w-3 h-3 text-green-500" />
+                          Copied!
+                        </>
+                      ) : (
+                        <>
+                          <Copy className="w-3 h-3" />
+                          Copy Email
+                        </>
+                      )}
+                    </button>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
           <div className="pt-8 border-t border-slate-100 flex flex-col sm:flex-row justify-between items-center gap-4 text-[10px] font-medium text-slate-400 uppercase tracking-widest">
             <p>&copy; 2026 Myanmar Legal Library. All rights reserved.</p>
             <div className="flex gap-6">
-              <a href="#" className="hover:text-indigo-600 transition-colors">Facebook</a>
-              <a href="#" className="hover:text-indigo-600 transition-colors">Twitter</a>
-              <a href="#" className="hover:text-indigo-600 transition-colors">LinkedIn</a>
+              <a href="#" className="hover:text-navy transition-colors">Facebook</a>
+              <a href="#" className="hover:text-navy transition-colors">Twitter</a>
+              <a href="#" className="hover:text-navy transition-colors">LinkedIn</a>
             </div>
           </div>
         </div>
