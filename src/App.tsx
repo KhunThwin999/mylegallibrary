@@ -25,6 +25,8 @@ import {
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import AboutPage from './components/AboutPage';
+import PrivacyPolicy from './components/PrivacyPolicy';
+import TextDictionary from './components/TextDictionary';
 
 // Types
 interface LegalBook {
@@ -91,7 +93,7 @@ export default function App() {
     setTimeout(() => setEmailCopied(false), 2000);
   };
   const [currentPage, setCurrentPage] = useState(1);
-  const [currentView, setCurrentView] = useState<'library' | 'about'>('library');
+  const [currentView, setCurrentView] = useState<'library' | 'about' | 'privacy' | 'text-dictionary'>('library');
   
   useEffect(() => {
     const fetchBooks = async () => {
@@ -244,6 +246,12 @@ export default function App() {
             >
               Home
             </button>
+            <button 
+              onClick={() => setCurrentView('text-dictionary')}
+              className={`${currentView === 'text-dictionary' ? 'text-navy border-b-2 border-navy pb-1' : 'hover:text-navy transition-colors'}`}
+            >
+              Dictionary
+            </button>
             <a href="#categories" className="hover:text-navy transition-colors">Categories</a>
             <a href="#latest" className="hover:text-navy transition-colors">Latest</a>
             <button 
@@ -383,35 +391,33 @@ export default function App() {
                       <p className="text-slate-500">Browse our comprehensive collection of Myanmar legal resources.</p>
                     </div>
 
-                    <div className="flex flex-col sm:flex-row gap-4">
-                      <div className="relative group">
+                    <div className="flex flex-wrap items-center gap-[10px]">
+                      <div className="relative group flex-1 sm:flex-none">
                         <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-navy transition-colors" />
                         <input 
                           type="text"
                           placeholder="Search books, authors..."
                           value={searchTerm}
                           onChange={(e) => setSearchTerm(e.target.value)}
-                          className="pl-10 pr-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm w-full sm:w-64 focus:ring-2 focus:ring-navy/20 focus:border-navy outline-none transition-all shadow-sm"
+                          className="pl-10 pr-4 h-[45px] bg-white border border-slate-200 rounded-[8px] text-sm w-full sm:w-64 focus:ring-2 focus:ring-navy/20 focus:border-navy outline-none transition-all shadow-sm box-border"
                         />
                       </div>
 
-                      <div className="flex gap-2">
-                        <select 
-                          value={selectedYear}
-                          onChange={(e) => setSelectedYear(e.target.value)}
-                          className="px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-navy/20 focus:border-navy outline-none transition-all shadow-sm cursor-pointer"
-                        >
-                          {years.map(y => <option key={y} value={y}>{y === 'All' ? 'All Years' : y}</option>)}
-                        </select>
+                      <select 
+                        value={selectedYear}
+                        onChange={(e) => setSelectedYear(e.target.value)}
+                        className="px-4 h-[45px] bg-white border border-slate-200 rounded-[8px] text-sm focus:ring-2 focus:ring-navy/20 focus:border-navy outline-none transition-all shadow-sm cursor-pointer box-border"
+                      >
+                        {years.map(y => <option key={y} value={y}>{y === 'All' ? 'All Years' : y}</option>)}
+                      </select>
 
-                        <button 
-                          onClick={() => setIsAlphabetModalOpen(true)}
-                          className="flex items-center gap-2 px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm font-medium hover:bg-slate-50 transition-all shadow-sm"
-                        >
-                          <Filter className="w-4 h-4 text-slate-400" />
-                          <span>{selectedLetter === 'All' ? 'A-Z' : selectedLetter}</span>
-                        </button>
-                      </div>
+                      <button 
+                        onClick={() => setIsAlphabetModalOpen(true)}
+                        className="flex items-center justify-center gap-2 px-6 h-[45px] bg-navy text-white rounded-[8px] text-sm font-bold hover:bg-navy/90 transition-all shadow-md box-border"
+                      >
+                        <Filter className="w-4 h-4" />
+                        <span>{selectedLetter === 'All' ? 'A-Z Filter' : `Letter: ${selectedLetter}`}</span>
+                      </button>
                     </div>
                   </div>
                 </div>
@@ -529,8 +535,12 @@ export default function App() {
               </main>
             </div>
           </motion.div>
-        ) : (
+        ) : currentView === 'about' ? (
           <AboutPage onBack={() => setCurrentView('library')} />
+        ) : currentView === 'text-dictionary' ? (
+          <TextDictionary onBack={() => setCurrentView('library')} />
+        ) : (
+          <PrivacyPolicy onBack={() => setCurrentView('library')} />
         )}
       </AnimatePresence>
 
@@ -651,9 +661,10 @@ export default function App() {
               <div>
                 <h4 className="font-bold text-slate-900 mb-4 text-sm uppercase tracking-wider">Library</h4>
                 <ul className="space-y-2 text-sm text-slate-500">
+                  <li><button onClick={() => setCurrentView('text-dictionary')} className="hover:text-navy transition-colors">Myanmar-English Dictionary</button></li>
                   <li><button onClick={() => setCurrentView('about')} className="hover:text-navy transition-colors">About Us</button></li>
                   <li><a href="#" className="hover:text-navy transition-colors">Contact</a></li>
-                  <li><a href="#" className="hover:text-navy transition-colors">Privacy Policy</a></li>
+                  <li><button onClick={() => setCurrentView('privacy')} className="hover:text-navy transition-colors">Privacy Policy</button></li>
                 </ul>
               </div>
               <div>
