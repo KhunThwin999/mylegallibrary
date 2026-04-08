@@ -5,6 +5,7 @@ import {
   BookOpen, 
   Download, 
   ChevronRight, 
+  ChevronLeft,
   LayoutGrid, 
   Shield, 
   Users, 
@@ -51,6 +52,7 @@ const CATEGORY_ICONS: Record<string, any> = {
 const MYANMAR_ALPHABET = ['က', 'ခ', 'ဂ', 'ဃ', 'င', 'စ', 'ဆ', 'ဇ', 'ဈ', 'ည', 'ဋ', 'ဌ', 'ဍ', 'ဎ', 'ဏ', 'တ', 'ထ', 'ဒ', 'ဓ', 'န', 'ပ', 'ဖ', 'ဗ', 'ဘ', 'မ', 'ယ', 'ရ', 'လ', 'ဝ', 'သ', 'ဟ', 'ဠ', 'အ'];
 
 const GOOGLE_SHEET_URL = 'https://opensheet.elk.sh/1HCOpKGKhv_Ggm3r6dtvldqUynv5z6vLy98jjeOSrS4I/Sheet1';
+const BOOKS_PER_PAGE = 8;
 
 function fixDriveLink(url: string, type: 'preview' | 'download' | 'cover' | 'thumbnail' = 'preview') {
   if (!url) return '';
@@ -76,6 +78,7 @@ export default function App() {
   const [isAlphabetModalOpen, setIsAlphabetModalOpen] = useState(false);
   const [activePdf, setActivePdf] = useState<string | null>(null);
   const [viewerTitle, setViewerTitle] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
   
   useEffect(() => {
     const fetchBooks = async () => {
@@ -144,6 +147,17 @@ export default function App() {
       return matchesSearch && matchesYear && matchesCategory && matchesLetter;
     });
   }, [books, searchTerm, selectedYear, selectedCategory, selectedLetter]);
+
+  const totalPages = Math.ceil(filteredBooks.length / BOOKS_PER_PAGE);
+  
+  const paginatedBooks = useMemo(() => {
+    const startIndex = (currentPage - 1) * BOOKS_PER_PAGE;
+    return filteredBooks.slice(startIndex, startIndex + BOOKS_PER_PAGE);
+  }, [filteredBooks, currentPage]);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm, selectedCategory, selectedYear, selectedLetter]);
 
   const openReader = (url: string, title: string) => {
     setActivePdf(url);
@@ -356,61 +370,100 @@ export default function App() {
           </div>
 
           {/* Book Grid */}
-          {filteredBooks.length > 0 ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-              {filteredBooks.map((book) => (
-                <motion.div 
-                  layout
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  key={book.id}
-                  className="group bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300"
-                >
-                  <div className="relative aspect-[2/3] overflow-hidden bg-slate-100">
-                    <img 
-                      src={book.cover} 
-                      alt={book.title}
-                      referrerPolicy="no-referrer"
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                    />
-                    {book.featured && (
-                      <div className="absolute top-3 left-3 px-2 py-1 bg-indigo-600 text-white text-[10px] font-bold uppercase tracking-wider rounded-md shadow-lg">
-                        Featured
+          {paginatedBooks.length > 0 ? (
+            <>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                {paginatedBooks.map((book) => (
+                  <motion.div 
+                    layout
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    key={book.id}
+                    className="group bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300"
+                  >
+                    <div className="relative aspect-[2/3] overflow-hidden bg-slate-100">
+                      <img 
+                        src={book.cover} 
+                        alt={book.title}
+                        referrerPolicy="no-referrer"
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                      />
+                      {book.featured && (
+                        <div className="absolute top-3 left-3 px-2 py-1 bg-indigo-600 text-white text-[10px] font-bold uppercase tracking-wider rounded-md shadow-lg">
+                          Featured
+                        </div>
+                      )}
+                      <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-3 p-4">
+                        <button 
+                          onClick={() => openReader(book.read, book.title)}
+                          className="p-3 bg-white text-indigo-600 rounded-full hover:bg-indigo-600 hover:text-white transition-all shadow-xl"
+                        >
+                          <BookOpen className="w-5 h-5" />
+                        </button>
+                        <a 
+                          href={book.file}
+                          target="_blank"
+                          className="p-3 bg-white text-slate-600 rounded-full hover:bg-slate-800 hover:text-white transition-all shadow-xl"
+                        >
+                          <Download className="w-5 h-5" />
+                        </a>
                       </div>
-                    )}
-                    <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-3 p-4">
-                      <button 
-                        onClick={() => openReader(book.read, book.title)}
-                        className="p-3 bg-white text-indigo-600 rounded-full hover:bg-indigo-600 hover:text-white transition-all shadow-xl"
-                      >
-                        <BookOpen className="w-5 h-5" />
-                      </button>
-                      <a 
-                        href={book.file}
-                        target="_blank"
-                        className="p-3 bg-white text-slate-600 rounded-full hover:bg-slate-800 hover:text-white transition-all shadow-xl"
-                      >
-                        <Download className="w-5 h-5" />
-                      </a>
                     </div>
-                  </div>
-                  <div className="p-5">
-                    <span className="text-[10px] font-bold text-indigo-600 uppercase tracking-widest mb-2 block">{book.category}</span>
-                    <h3 className="font-bold text-slate-900 line-clamp-2 mb-1 group-hover:text-indigo-600 transition-colors leading-tight">{book.title}</h3>
-                    <p className="text-xs text-slate-500 mb-4">By {book.author}</p>
-                    <div className="flex items-center justify-between pt-4 border-t border-slate-50">
-                      <span className="text-[10px] font-medium text-slate-400">{book.year}</span>
-                      <button 
-                         onClick={() => openReader(book.read, book.title)}
-                        className="text-xs font-bold text-indigo-600 hover:text-indigo-700 flex items-center gap-1"
-                      >
-                        Read Now <ChevronRight className="w-3 h-3" />
-                      </button>
+                    <div className="p-5">
+                      <span className="text-[10px] font-bold text-indigo-600 uppercase tracking-widest mb-2 block">{book.category}</span>
+                      <h3 className="font-bold text-slate-900 line-clamp-2 mb-1 group-hover:text-indigo-600 transition-colors leading-tight">{book.title}</h3>
+                      <p className="text-xs text-slate-500 mb-4">By {book.author}</p>
+                      <div className="flex items-center justify-between pt-4 border-t border-slate-50">
+                        <span className="text-[10px] font-medium text-slate-400">{book.year}</span>
+                        <button 
+                           onClick={() => openReader(book.read, book.title)}
+                          className="text-xs font-bold text-indigo-600 hover:text-indigo-700 flex items-center gap-1"
+                        >
+                          Read Now <ChevronRight className="w-3 h-3" />
+                        </button>
+                      </div>
                     </div>
+                  </motion.div>
+                ))}
+              </div>
+
+              {/* Pagination Bar */}
+              {totalPages > 1 && (
+                <div className="mt-12 flex items-center justify-center gap-2">
+                  <button
+                    onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                    disabled={currentPage === 1}
+                    className="p-2 rounded-xl border border-slate-200 bg-white text-slate-600 hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-sm"
+                  >
+                    <ChevronLeft className="w-5 h-5" />
+                  </button>
+                  
+                  <div className="flex items-center gap-1">
+                    {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
+                      <button
+                        key={page}
+                        onClick={() => setCurrentPage(page)}
+                        className={`w-10 h-10 rounded-xl text-sm font-bold transition-all ${
+                          currentPage === page
+                            ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-200'
+                            : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-50 shadow-sm'
+                        }`}
+                      >
+                        {page}
+                      </button>
+                    ))}
                   </div>
-                </motion.div>
-              ))}
-            </div>
+
+                  <button
+                    onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                    disabled={currentPage === totalPages}
+                    className="p-2 rounded-xl border border-slate-200 bg-white text-slate-600 hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-sm"
+                  >
+                    <ChevronRight className="w-5 h-5" />
+                  </button>
+                </div>
+              )}
+            </>
           ) : (
             <div className="flex flex-col items-center justify-center py-20 text-center">
               <div className="w-20 h-20 bg-slate-100 rounded-full flex items-center justify-center mb-6">
