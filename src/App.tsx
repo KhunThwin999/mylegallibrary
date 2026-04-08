@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useRef } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { 
   Search, 
   Gavel, 
@@ -17,15 +17,9 @@ import {
   Menu,
   Filter,
   Sparkles,
-  Send,
-  Loader2,
   Scale
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
-import { GoogleGenAI } from "@google/genai";
-
-// Initialize Gemini
-const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
 
 // Types
 interface LegalBook {
@@ -83,54 +77,6 @@ export default function App() {
   const [activePdf, setActivePdf] = useState<string | null>(null);
   const [viewerTitle, setViewerTitle] = useState('');
   
-  // AI Chat State
-  const [isAiOpen, setIsAiOpen] = useState(false);
-  const [aiInput, setAiInput] = useState('');
-  const [chatHistory, setChatHistory] = useState<{ role: 'user' | 'ai', content: string }[]>([]);
-  const [isAiLoading, setIsAiLoading] = useState(false);
-  const chatEndRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    if (chatEndRef.current) {
-      chatEndRef.current.scrollIntoView({ behavior: 'smooth' });
-    }
-  }, [chatHistory]);
-
-  const handleAiSearch = async () => {
-    if (!aiInput.trim() || isAiLoading) return;
-    
-    const userMsg = aiInput;
-    setAiInput('');
-    setChatHistory(prev => [...prev, { role: 'user', content: userMsg }]);
-    setIsAiLoading(true);
-
-    try {
-      const bookContext = books.map(b => `- ${b.title} by ${b.author} (${b.category}, ${b.year})`).join('\n');
-      
-      const response = await ai.models.generateContent({
-        model: "gemini-3-flash-preview",
-        contents: userMsg,
-        config: {
-          systemInstruction: `You are a helpful Myanmar Legal Assistant. You have access to a library of legal books. 
-          Here is the current catalog:
-          ${bookContext}
-          
-          Answer the user's questions about Myanmar law or help them find specific books from the catalog. 
-          If they ask for a book that isn't in the catalog, mention that it's not currently available but offer general legal info if possible.
-          Keep answers professional, concise, and helpful. Use Myanmar language if the user asks in Myanmar.`
-        }
-      });
-
-      const aiMsg = response.text || "I'm sorry, I couldn't process that request.";
-      setChatHistory(prev => [...prev, { role: 'ai', content: aiMsg }]);
-    } catch (error) {
-      console.error('AI Error:', error);
-      setChatHistory(prev => [...prev, { role: 'ai', content: "Sorry, I'm having trouble connecting to my legal database right now." }]);
-    } finally {
-      setIsAiLoading(false);
-    }
-  };
-
   useEffect(() => {
     const fetchBooks = async () => {
       try {
@@ -262,13 +208,6 @@ export default function App() {
           </nav>
 
           <div className="flex items-center gap-4">
-            <button 
-              onClick={() => setIsAiOpen(true)}
-              className="hidden sm:flex items-center gap-2 px-4 py-2 bg-indigo-50 text-indigo-700 rounded-full text-sm font-bold hover:bg-indigo-100 transition-all"
-            >
-              <Sparkles className="w-4 h-4" />
-              Ask AI
-            </button>
             <button 
               onClick={() => setIsSidebarOpen(!isSidebarOpen)}
               className="p-2 hover:bg-slate-100 rounded-lg md:hidden"
@@ -616,125 +555,6 @@ export default function App() {
           </div>
         </div>
       </footer>
-
-      {/* AI Assistant Sidebar */}
-      <AnimatePresence>
-        {isAiOpen && (
-          <>
-            <motion.div 
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              onClick={() => setIsAiOpen(false)}
-              className="fixed inset-0 z-[80] bg-slate-900/40 backdrop-blur-sm"
-            />
-            <motion.div 
-              initial={{ x: '100%' }}
-              animate={{ x: 0 }}
-              exit={{ x: '100%' }}
-              className="fixed inset-y-0 right-0 z-[90] w-full max-w-md bg-white shadow-2xl flex flex-col"
-            >
-              <div className="p-6 border-b border-slate-100 flex items-center justify-between bg-indigo-900 text-white">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-white/10 rounded-xl flex items-center justify-center">
-                    <Sparkles className="w-6 h-6 text-indigo-300" />
-                  </div>
-                  <div>
-                    <h3 className="font-bold">Legal AI Assistant</h3>
-                    <p className="text-[10px] text-indigo-300 uppercase tracking-widest font-bold">Powered by Gemini</p>
-                  </div>
-                </div>
-                <button onClick={() => setIsAiOpen(false)} className="p-2 hover:bg-white/10 rounded-full transition-colors">
-                  <X className="w-6 h-6" />
-                </button>
-              </div>
-
-              <div className="flex-1 overflow-y-auto p-6 space-y-6 bg-slate-50/50">
-                {chatHistory.length === 0 && (
-                  <div className="h-full flex flex-col items-center justify-center text-center p-8">
-                    <div className="w-16 h-16 bg-white rounded-2xl shadow-sm flex items-center justify-center mb-6">
-                      <Scale className="w-8 h-8 text-indigo-600" />
-                    </div>
-                    <h4 className="font-bold text-slate-900 mb-2">How can I help you today?</h4>
-                    <p className="text-sm text-slate-500 mb-8">Ask me about specific laws, find books, or get legal summaries.</p>
-                    <div className="grid grid-cols-1 gap-2 w-full">
-                      {[
-                        "What are the main civil laws?",
-                        "Find books about Constitution",
-                        "Summarize the Penal Code"
-                      ].map(suggestion => (
-                        <button 
-                          key={suggestion}
-                          onClick={() => setAiInput(suggestion)}
-                          className="p-3 bg-white border border-slate-200 rounded-xl text-xs text-left hover:border-indigo-500 hover:text-indigo-600 transition-all"
-                        >
-                          {suggestion}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                )}
-                
-                {chatHistory.map((msg, i) => (
-                  <div key={i} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-                    <div className={`max-w-[85%] p-4 rounded-2xl text-sm leading-relaxed shadow-sm ${
-                      msg.role === 'user' 
-                        ? 'bg-indigo-600 text-white rounded-tr-none' 
-                        : 'bg-white text-slate-700 border border-slate-100 rounded-tl-none'
-                    }`}>
-                      {msg.content}
-                    </div>
-                  </div>
-                ))}
-                {isAiLoading && (
-                  <div className="flex justify-start">
-                    <div className="bg-white border border-slate-100 p-4 rounded-2xl rounded-tl-none shadow-sm flex items-center gap-3">
-                      <Loader2 className="w-4 h-4 text-indigo-600 animate-spin" />
-                      <span className="text-xs text-slate-400 font-medium">Analyzing legal archives...</span>
-                    </div>
-                  </div>
-                )}
-                <div ref={chatEndRef} />
-              </div>
-
-              <div className="p-4 bg-white border-t border-slate-100">
-                <form 
-                  onSubmit={(e) => { e.preventDefault(); handleAiSearch(); }}
-                  className="relative flex items-center gap-2"
-                >
-                  <input 
-                    type="text"
-                    value={aiInput}
-                    onChange={(e) => setAiInput(e.target.value)}
-                    placeholder="Type your legal question..."
-                    className="flex-1 pl-4 pr-12 py-3 bg-slate-100 border-none rounded-2xl text-sm focus:ring-2 focus:ring-indigo-500/20 outline-none"
-                  />
-                  <button 
-                    type="submit"
-                    disabled={!aiInput.trim() || isAiLoading}
-                    className="absolute right-2 p-2 bg-indigo-600 text-white rounded-xl disabled:opacity-50 hover:bg-indigo-700 transition-all"
-                  >
-                    <Send className="w-4 h-4" />
-                  </button>
-                </form>
-                <p className="text-[10px] text-center text-slate-400 mt-3">AI responses should be verified with official legal documents.</p>
-              </div>
-            </motion.div>
-          </>
-        )}
-      </AnimatePresence>
-
-      {/* Floating AI Button */}
-      <button 
-        onClick={() => setIsAiOpen(true)}
-        className="fixed bottom-8 right-8 w-16 h-16 bg-indigo-900 text-white rounded-2xl shadow-2xl flex items-center justify-center hover:scale-110 active:scale-95 transition-all z-30 group overflow-hidden"
-      >
-        <div className="absolute inset-0 bg-gradient-to-tr from-indigo-600 to-violet-600 opacity-0 group-hover:opacity-100 transition-opacity" />
-        <Sparkles className="relative w-7 h-7 group-hover:animate-pulse" />
-        <div className="absolute right-full mr-4 px-3 py-2 bg-slate-900 text-white text-[10px] font-bold uppercase tracking-widest rounded-xl opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none shadow-xl">
-          Legal AI Assistant
-        </div>
-      </button>
     </div>
   );
 }
