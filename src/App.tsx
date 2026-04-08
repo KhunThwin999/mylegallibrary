@@ -196,7 +196,7 @@ export default function App() {
               <div className="absolute inset-0 border-4 border-t-indigo-600 rounded-full animate-spin"></div>
               <Gavel className="absolute inset-0 m-auto w-10 h-10 text-indigo-600" />
             </div>
-            <p className="mt-6 text-slate-500 font-medium tracking-widest uppercase text-sm">Preparing Legal Archives</p>
+            <p className="mt-6 text-slate-500 font-medium tracking-widest uppercase text-sm">Preparing Legal Library</p>
           </motion.div>
         )}
       </AnimatePresence>
@@ -210,7 +210,14 @@ export default function App() {
             </div>
             <div className="flex flex-col leading-none">
               <span className="text-lg">Myanmar Legal</span>
-              <span className="text-xs font-medium text-slate-400 uppercase tracking-widest">Digital Archive</span>
+              <div className="flex items-center gap-2">
+                <span className="text-xs font-medium text-slate-400 uppercase tracking-widest">Library</span>
+                {!loading && books.length > 0 && (
+                  <span className="px-1.5 py-0.5 bg-indigo-100 text-indigo-600 text-[10px] font-bold rounded-md">
+                    {books.length} Books
+                  </span>
+                )}
+              </div>
             </div>
           </div>
           
@@ -330,8 +337,13 @@ export default function App() {
             
             <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-6">
               <div>
-                <h1 className="text-3xl font-bold text-slate-900 tracking-tight mb-2">
+                <h1 className="text-3xl font-bold text-slate-900 tracking-tight mb-2 flex items-center gap-3">
                   {selectedCategory === 'All' ? 'All Legal Books' : selectedCategory}
+                  {!loading && (
+                    <span className="text-sm font-medium px-2.5 py-1 bg-slate-100 text-slate-500 rounded-lg">
+                      {filteredBooks.length} {filteredBooks.length === 1 ? 'book' : 'books'}
+                    </span>
+                  )}
                 </h1>
                 <p className="text-slate-500">Browse our comprehensive collection of Myanmar legal resources.</p>
               </div>
@@ -573,7 +585,7 @@ export default function App() {
                 <div className="w-8 h-8 bg-indigo-900 text-white rounded-lg flex items-center justify-center">
                   <Scale className="w-5 h-5" />
                 </div>
-                <span>Myanmar Legal Archive</span>
+                <span>Myanmar Legal Library</span>
               </div>
               <p className="text-slate-500 leading-relaxed text-sm">
                 Your digital gateway to Myanmar's legal knowledge. Empowering citizens and professionals with accessible legal resources.
@@ -589,7 +601,7 @@ export default function App() {
                 </ul>
               </div>
               <div>
-                <h4 className="font-bold text-slate-900 mb-4 text-sm uppercase tracking-wider">Archive</h4>
+                <h4 className="font-bold text-slate-900 mb-4 text-sm uppercase tracking-wider">Library</h4>
                 <ul className="space-y-2 text-sm text-slate-500">
                   <li><a href="#" className="hover:text-indigo-600 transition-colors">About Us</a></li>
                   <li><a href="#" className="hover:text-indigo-600 transition-colors">Contact</a></li>
@@ -599,7 +611,7 @@ export default function App() {
             </div>
           </div>
           <div className="pt-8 border-t border-slate-100 flex flex-col sm:flex-row justify-between items-center gap-4 text-[10px] font-medium text-slate-400 uppercase tracking-widest">
-            <p>&copy; 2026 Myanmar Legal Digital Archive. All rights reserved.</p>
+            <p>&copy; 2026 Myanmar Legal Library. All rights reserved.</p>
             <div className="flex gap-6">
               <a href="#" className="hover:text-indigo-600 transition-colors">Facebook</a>
               <a href="#" className="hover:text-indigo-600 transition-colors">Twitter</a>
