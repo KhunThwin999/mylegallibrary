@@ -75,20 +75,20 @@ export default function LatestUpdates({ books, onBack, onRead }: LatestUpdatesPr
               {/* Content */}
               <div className="flex-1">
                 <div className="flex items-center gap-3 mb-3">
-                  <span className="px-3 py-1 bg-slate-100 text-slate-500 text-[10px] font-bold uppercase tracking-widest rounded-full">
+                  <span className="px-2.5 py-1 bg-slate-50 text-slate-400 text-[9px] font-bold uppercase tracking-widest rounded-md border border-slate-100">
                     {book.category}
                   </span>
-                  <span className="flex items-center gap-1 text-[10px] font-bold text-navy uppercase tracking-widest">
+                  <span className="flex items-center gap-1 text-[9px] font-bold text-navy/40 uppercase tracking-widest">
                     <Calendar className="w-3 h-3" />
                     {book.year}
                   </span>
                 </div>
                 
-                <h3 className="text-xl font-bold text-slate-900 mb-2 group-hover:text-navy transition-colors">
+                <h3 className="text-xl font-bold text-slate-900 mb-2 group-hover:text-navy transition-colors leading-tight">
                   {book.title}
                 </h3>
                 
-                <p className="text-slate-500 text-sm mb-6 line-clamp-2 leading-relaxed">
+                <p className="text-slate-500 text-sm mb-6 line-clamp-2 leading-relaxed font-medium">
                   {book.description || `A new addition to the ${book.category} section. Explore the latest legal insights and documentation.`}
                 </p>
 
@@ -96,7 +96,7 @@ export default function LatestUpdates({ books, onBack, onRead }: LatestUpdatesPr
                   <span className="text-xs text-slate-400 font-medium">By {book.author}</span>
                   <button 
                     onClick={() => onRead(book.read, book.title)}
-                    className="flex items-center gap-2 text-navy font-bold text-sm hover:gap-3 transition-all"
+                    className="flex items-center gap-1.5 text-navy font-bold text-sm hover:gap-2 transition-all"
                   >
                     Read Document
                     <ChevronRight className="w-4 h-4" />
