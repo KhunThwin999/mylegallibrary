@@ -12,27 +12,24 @@ async function startServer() {
   const port = 3000;
 
   // Explicitly serve sitemap.xml and robots.txt with correct MIME types
-  app.get('/sitemap.xml', (req, res) => {
-    const isProd = process.env.NODE_ENV === 'production';
-    const filePath = path.join(process.cwd(), isProd ? 'dist' : 'public', 'sitemap.xml');
-    if (fs.existsSync(filePath)) {
-      res.header('Content-Type', 'application/xml');
-      res.sendFile(filePath);
-    } else {
-      res.status(404).send('Sitemap not found');
-    }
-  });
+  const serveStaticFile = (fileName: string, contentType: string) => (req: any, res: any) => {
+    const possiblePaths = [
+      path.join(process.cwd(), 'dist', fileName),
+      path.join(process.cwd(), 'public', fileName),
+      path.join(process.cwd(), fileName),
+    ];
 
-  app.get('/robots.txt', (req, res) => {
-    const isProd = process.env.NODE_ENV === 'production';
-    const filePath = path.join(process.cwd(), isProd ? 'dist' : 'public', 'robots.txt');
-    if (fs.existsSync(filePath)) {
-      res.header('Content-Type', 'text/plain');
-      res.sendFile(filePath);
-    } else {
-      res.status(404).send('Robots.txt not found');
+    for (const filePath of possiblePaths) {
+      if (fs.existsSync(filePath)) {
+        res.header('Content-Type', contentType);
+        return res.sendFile(filePath);
+      }
     }
-  });
+    res.status(404).send(`${fileName} not found`);
+  };
+
+  app.get('/sitemap.xml', serveStaticFile('sitemap.xml', 'application/xml'));
+  app.get('/robots.txt', serveStaticFile('robots.txt', 'text/plain'));
 
   if (process.env.NODE_ENV !== 'production') {
     const vite = await createViteServer({

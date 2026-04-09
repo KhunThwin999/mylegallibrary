@@ -14,6 +14,7 @@ import {
   Briefcase, 
   Globe, 
   Book,
+  Bell,
   X,
   Menu,
   Filter,
@@ -27,6 +28,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import AboutPage from './components/AboutPage';
 import PrivacyPolicy from './components/PrivacyPolicy';
 import TextDictionary from './components/TextDictionary';
+import LatestUpdates from './components/LatestUpdates';
 
 // Types
 interface LegalBook {
@@ -93,7 +95,7 @@ export default function App() {
     setTimeout(() => setEmailCopied(false), 2000);
   };
   const [currentPage, setCurrentPage] = useState(1);
-  const [currentView, setCurrentView] = useState<'library' | 'about' | 'privacy' | 'text-dictionary'>('library');
+  const [currentView, setCurrentView] = useState<'library' | 'about' | 'privacy' | 'text-dictionary' | 'latest'>('library');
 
   // Handle URL routing
   useEffect(() => {
@@ -101,6 +103,7 @@ export default function App() {
       const path = window.location.pathname;
       if (path === '/books') setCurrentView('library');
       else if (path === '/dictionary') setCurrentView('text-dictionary');
+      else if (path === '/latest') setCurrentView('latest');
       else if (path === '/about') setCurrentView('about');
       else if (path === '/privacy') setCurrentView('privacy');
       else if (path === '/') setCurrentView('library');
@@ -278,7 +281,12 @@ export default function App() {
               Dictionary
             </button>
             <a href="#categories" className="hover:text-navy transition-colors">Categories</a>
-            <a href="#latest" className="hover:text-navy transition-colors">Latest</a>
+            <button 
+              onClick={() => navigate('latest')}
+              className={`${currentView === 'latest' ? 'text-navy border-b-2 border-navy pb-1' : 'hover:text-navy transition-colors'}`}
+            >
+              Latest
+            </button>
             <button 
               onClick={() => navigate('about')}
               className={`${currentView === 'about' ? 'text-navy border-b-2 border-navy pb-1' : 'hover:text-navy transition-colors'}`}
@@ -370,13 +378,29 @@ export default function App() {
                 <div className="md:hidden mb-8 space-y-3">
                   <button
                     onClick={() => {
-                      navigate('text-dictionary');
+                      navigate('latest');
                       setIsSidebarOpen(false);
                     }}
                     className="w-full flex items-center gap-4 px-5 py-4 bg-navy text-white rounded-2xl font-bold shadow-xl shadow-navy/20 transition-all active:scale-[0.98]"
                   >
                     <div className="w-8 h-8 bg-white/10 rounded-lg flex items-center justify-center">
-                      <Book className="w-5 h-5" />
+                      <Bell className="w-5 h-5" />
+                    </div>
+                    <div className="flex flex-col items-start">
+                      <span className="text-sm">Latest Updates</span>
+                      <span className="text-[10px] opacity-60 font-medium uppercase tracking-widest">New Arrivals</span>
+                    </div>
+                  </button>
+
+                  <button
+                    onClick={() => {
+                      navigate('text-dictionary');
+                      setIsSidebarOpen(false);
+                    }}
+                    className="w-full flex items-center gap-4 px-5 py-4 bg-white border border-slate-200 text-slate-600 rounded-2xl font-bold transition-all active:scale-[0.98]"
+                  >
+                    <div className="w-8 h-8 bg-slate-50 rounded-lg flex items-center justify-center">
+                      <Book className="w-5 h-5 text-slate-400" />
                     </div>
                     <div className="flex flex-col items-start">
                       <span className="text-sm">Law Dictionary</span>
@@ -598,6 +622,8 @@ export default function App() {
           <AboutPage onBack={() => navigate('library')} />
         ) : currentView === 'text-dictionary' ? (
           <TextDictionary onBack={() => navigate('library')} />
+        ) : currentView === 'latest' ? (
+          <LatestUpdates books={books} onBack={() => navigate('library')} onRead={openReader} />
         ) : (
           <PrivacyPolicy onBack={() => navigate('library')} />
         )}
@@ -721,6 +747,7 @@ export default function App() {
                 <div>
                   <h4 className="font-bold text-slate-900 mb-4 text-sm uppercase tracking-wider">Library</h4>
                   <ul className="space-y-2 text-sm text-slate-500">
+                    <li><button onClick={() => navigate('latest')} className="hover:text-navy transition-colors">Latest Updates</button></li>
                     <li><button onClick={() => navigate('text-dictionary')} className="hover:text-navy transition-colors">English - Myanmar Law Dictionary</button></li>
                     <li><button onClick={() => navigate('about')} className="hover:text-navy transition-colors">About Us</button></li>
                     <li><a href="#" className="hover:text-navy transition-colors">Contact</a></li>
