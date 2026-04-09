@@ -94,6 +94,31 @@ export default function App() {
   };
   const [currentPage, setCurrentPage] = useState(1);
   const [currentView, setCurrentView] = useState<'library' | 'about' | 'privacy' | 'text-dictionary'>('library');
+
+  // Handle URL routing
+  useEffect(() => {
+    const handleLocationChange = () => {
+      const path = window.location.pathname;
+      if (path === '/books') setCurrentView('library');
+      else if (path === '/dictionary') setCurrentView('text-dictionary');
+      else if (path === '/about') setCurrentView('about');
+      else if (path === '/privacy') setCurrentView('privacy');
+      else if (path === '/') setCurrentView('library');
+    };
+
+    handleLocationChange();
+    window.addEventListener('popstate', handleLocationChange);
+    return () => window.removeEventListener('popstate', handleLocationChange);
+  }, []);
+
+  const navigate = (view: typeof currentView) => {
+    setCurrentView(view);
+    const path = view === 'library' ? '/' : 
+                 view === 'text-dictionary' ? '/dictionary' : 
+                 `/${view}`;
+    window.history.pushState({}, '', path);
+    window.scrollTo(0, 0);
+  };
   
   useEffect(() => {
     const fetchBooks = async () => {
@@ -220,7 +245,7 @@ export default function App() {
       <header className="sticky top-0 z-40 bg-white/80 backdrop-blur-md border-b border-slate-200">
         <div className="max-w-7xl mx-auto px-4 h-20 flex items-center justify-between">
           <button 
-            onClick={() => setCurrentView('library')}
+            onClick={() => navigate('library')}
             className="flex items-center gap-3 text-navy font-bold text-2xl tracking-tight hover:opacity-80 transition-opacity"
           >
             <div className="w-10 h-10 bg-navy text-white rounded-xl flex items-center justify-center shadow-lg shadow-slate-200">
@@ -241,13 +266,13 @@ export default function App() {
           
           <nav className="hidden md:flex items-center gap-10 text-sm font-semibold text-slate-500">
             <button 
-              onClick={() => setCurrentView('library')}
+              onClick={() => navigate('library')}
               className={`${currentView === 'library' ? 'text-navy border-b-2 border-navy pb-1' : 'hover:text-navy transition-colors'}`}
             >
               Home
             </button>
             <button 
-              onClick={() => setCurrentView('text-dictionary')}
+              onClick={() => navigate('text-dictionary')}
               className={`${currentView === 'text-dictionary' ? 'text-navy border-b-2 border-navy pb-1' : 'hover:text-navy transition-colors'}`}
             >
               Dictionary
@@ -255,7 +280,7 @@ export default function App() {
             <a href="#categories" className="hover:text-navy transition-colors">Categories</a>
             <a href="#latest" className="hover:text-navy transition-colors">Latest</a>
             <button 
-              onClick={() => setCurrentView('about')}
+              onClick={() => navigate('about')}
               className={`${currentView === 'about' ? 'text-navy border-b-2 border-navy pb-1' : 'hover:text-navy transition-colors'}`}
             >
               About
@@ -345,7 +370,7 @@ export default function App() {
                 <div className="md:hidden mb-8 space-y-3">
                   <button
                     onClick={() => {
-                      setCurrentView('text-dictionary');
+                      navigate('text-dictionary');
                       setIsSidebarOpen(false);
                     }}
                     className="w-full flex items-center gap-4 px-5 py-4 bg-navy text-white rounded-2xl font-bold shadow-xl shadow-navy/20 transition-all active:scale-[0.98]"
@@ -361,7 +386,7 @@ export default function App() {
                   
                   <button
                     onClick={() => {
-                      setCurrentView('about');
+                      navigate('about');
                       setIsSidebarOpen(false);
                     }}
                     className="w-full flex items-center gap-4 px-5 py-4 bg-white border border-slate-200 text-slate-600 rounded-2xl font-bold transition-all active:scale-[0.98]"
@@ -415,14 +440,14 @@ export default function App() {
                   <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-6">
                     <div>
                       <h1 className="text-3xl font-bold text-slate-900 tracking-tight mb-2 flex items-center gap-3">
-                        {selectedCategory === 'All' ? 'All Legal Books' : selectedCategory}
+                        Myanmar Legal Library - Your Complete Legal Resource Hub
                         {!loading && (
                           <span className="text-sm font-bold px-3 py-1 bg-navy text-white rounded-lg shadow-md shadow-slate-200">
                             {filteredBooks.length} {filteredBooks.length === 1 ? 'book' : 'books'}
                           </span>
                         )}
                       </h1>
-                      <p className="text-slate-500">Browse our comprehensive collection of Myanmar legal resources.</p>
+                      <p className="text-slate-500">Access Myanmar's largest collection of legal books, documents, and legal dictionary.</p>
                     </div>
 
                     <div className="flex flex-wrap items-center gap-[10px]">
@@ -570,11 +595,11 @@ export default function App() {
             </div>
           </motion.div>
         ) : currentView === 'about' ? (
-          <AboutPage onBack={() => setCurrentView('library')} />
+          <AboutPage onBack={() => navigate('library')} />
         ) : currentView === 'text-dictionary' ? (
-          <TextDictionary onBack={() => setCurrentView('library')} />
+          <TextDictionary onBack={() => navigate('library')} />
         ) : (
-          <PrivacyPolicy onBack={() => setCurrentView('library')} />
+          <PrivacyPolicy onBack={() => navigate('library')} />
         )}
       </AnimatePresence>
 
@@ -668,13 +693,13 @@ export default function App() {
               <div className="max-w-sm">
                 <div className="flex items-center gap-3 text-navy font-bold text-xl mb-4">
                   <button 
-                    onClick={() => setCurrentView('library')}
+                    onClick={() => navigate('library')}
                     className="w-8 h-8 bg-navy text-white rounded-lg flex items-center justify-center hover:opacity-80 transition-opacity"
                   >
                     <Scale className="w-5 h-5" />
                   </button>
                   <button 
-                    onClick={() => setCurrentView('library')}
+                    onClick={() => navigate('library')}
                     className="hover:text-navy transition-colors"
                   >
                     Myanmar Legal Library
@@ -696,10 +721,10 @@ export default function App() {
                 <div>
                   <h4 className="font-bold text-slate-900 mb-4 text-sm uppercase tracking-wider">Library</h4>
                   <ul className="space-y-2 text-sm text-slate-500">
-                    <li><button onClick={() => setCurrentView('text-dictionary')} className="hover:text-navy transition-colors">English - Myanmar Law Dictionary</button></li>
-                    <li><button onClick={() => setCurrentView('about')} className="hover:text-navy transition-colors">About Us</button></li>
+                    <li><button onClick={() => navigate('text-dictionary')} className="hover:text-navy transition-colors">English - Myanmar Law Dictionary</button></li>
+                    <li><button onClick={() => navigate('about')} className="hover:text-navy transition-colors">About Us</button></li>
                     <li><a href="#" className="hover:text-navy transition-colors">Contact</a></li>
-                    <li><button onClick={() => setCurrentView('privacy')} className="hover:text-navy transition-colors">Privacy Policy</button></li>
+                    <li><button onClick={() => navigate('privacy')} className="hover:text-navy transition-colors">Privacy Policy</button></li>
                   </ul>
                 </div>
                 <div>
