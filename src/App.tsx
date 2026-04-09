@@ -88,7 +88,33 @@ export default function App() {
   const [viewerTitle, setViewerTitle] = useState('');
   const [emailCopied, setEmailCopied] = useState(false);
   const [touchedBookId, setTouchedBookId] = useState<string | null>(null);
+  const [showBackToTop, setShowBackToTop] = useState(false);
+  const [expandedGroups, setExpandedGroups] = useState<string[]>(['General Law']);
   const supportEmail = 'support@myanmarlegallibrary.com';
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setShowBackToTop(window.scrollY > 500);
+    };
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  const scrollToTop = () => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const toggleGroup = (group: string) => {
+    setExpandedGroups(prev => 
+      prev.includes(group) ? prev.filter(g => g !== group) : [...prev, group]
+    );
+  };
+
+  const categoryGroups = {
+    'General Law': ['All', 'Law & Constitution', 'Penal Code', 'Civil Law', 'Criminal Law'],
+    'Specific Law': ['Police Procedure', 'Land Law', 'Business Law'],
+    'International': ['International Law']
+  };
 
   const copyEmail = () => {
     navigator.clipboard.writeText(supportEmail);
@@ -342,7 +368,7 @@ export default function App() {
                       <div className="flex flex-wrap gap-4">
                         <button 
                           onClick={() => openReader(featuredBooks[0].read, featuredBooks[0].title)}
-                          className="px-8 py-4 bg-white text-navy rounded-2xl font-bold hover:bg-slate-50 transition-all shadow-xl shadow-navy/20 flex items-center gap-2"
+                          className="px-8 py-4 bg-white text-navy rounded-2xl font-bold hover:bg-slate-50 transition-all shadow-xl shadow-navy/20 flex items-center gap-2 active:scale-95"
                         >
                           <BookOpen className="w-5 h-5" />
                           Read Now
@@ -350,7 +376,7 @@ export default function App() {
                         <a 
                           href={featuredBooks[0].file}
                           target="_blank"
-                          className="px-8 py-4 bg-muted-green text-white rounded-2xl font-bold hover:bg-green-700 transition-all border border-green-700 flex items-center gap-2"
+                          className="px-8 py-4 bg-white/10 backdrop-blur-md text-white rounded-2xl font-bold hover:bg-white/20 transition-all border border-white/20 flex items-center gap-2 active:scale-95"
                         >
                           <Download className="w-5 h-5" />
                           Download PDF
@@ -392,10 +418,10 @@ export default function App() {
                     </select>
                     <button 
                       onClick={() => setIsAlphabetModalOpen(true)}
-                      className="px-8 py-5 bg-navy text-white rounded-2xl font-bold hover:bg-navy/90 transition-all shadow-lg flex items-center gap-2 whitespace-nowrap"
+                      className="px-8 py-5 bg-slate-50 text-slate-600 rounded-2xl font-bold hover:bg-slate-100 transition-all flex items-center gap-2 whitespace-nowrap border border-transparent focus:border-navy/20"
                     >
-                      <Filter className="w-5 h-5" />
-                      <span>{selectedLetter === 'All' ? 'A-Z' : `Letter: ${selectedLetter}`}</span>
+                      <Filter className="w-5 h-5 text-slate-400" />
+                      <span>{selectedLetter === 'All' ? 'A-Z Filter' : `Letter: ${selectedLetter}`}</span>
                     </button>
                   </div>
                 </div>
@@ -453,29 +479,51 @@ export default function App() {
                   <div className="p-4 border-b border-slate-100 bg-slate-50/50">
                     <h3 className="font-semibold text-slate-800">Legal Categories</h3>
                   </div>
-                  <ul className="p-2">
-                    {categories.map(cat => {
-                      const Icon = CATEGORY_ICONS[cat] || CATEGORY_ICONS['Default'];
-                      return (
-                        <li key={cat}>
-                          <button
-                            onClick={() => {
-                              setSelectedCategory(cat);
-                              setIsSidebarOpen(false);
-                            }}
-                            className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all ${
-                              selectedCategory === cat 
-                                ? 'bg-slate-50 text-navy shadow-sm' 
-                                : 'text-slate-600 hover:bg-slate-50'
-                            }`}
-                          >
-                            <Icon className={`w-4 h-4 ${selectedCategory === cat ? 'text-navy' : 'text-slate-400'}`} />
-                            {cat}
-                          </button>
-                        </li>
-                      );
-                    })}
-                  </ul>
+                  <div className="p-2 space-y-1">
+                    {Object.entries(categoryGroups).map(([group, groupCats]) => (
+                      <div key={group} className="space-y-1">
+                        <button 
+                          onClick={() => toggleGroup(group)}
+                          className="w-full flex items-center justify-between px-4 py-3 rounded-xl text-xs font-bold text-slate-400 uppercase tracking-widest hover:bg-slate-50 transition-colors"
+                        >
+                          {group}
+                          <ChevronRight className={`w-3 h-3 transition-transform duration-300 ${expandedGroups.includes(group) ? 'rotate-90' : ''}`} />
+                        </button>
+                        <AnimatePresence initial={false}>
+                          {expandedGroups.includes(group) && (
+                            <motion.ul 
+                              initial={{ height: 0, opacity: 0 }}
+                              animate={{ height: 'auto', opacity: 1 }}
+                              exit={{ height: 0, opacity: 0 }}
+                              className="overflow-hidden space-y-1"
+                            >
+                              {groupCats.map(cat => {
+                                const Icon = CATEGORY_ICONS[cat] || CATEGORY_ICONS['Default'];
+                                return (
+                                  <li key={cat}>
+                                    <button
+                                      onClick={() => {
+                                        setSelectedCategory(cat);
+                                        setIsSidebarOpen(false);
+                                      }}
+                                      className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium transition-all ${
+                                        selectedCategory === cat 
+                                          ? 'bg-navy/5 text-navy shadow-sm' 
+                                          : 'text-slate-600 hover:bg-slate-50'
+                                      }`}
+                                    >
+                                      <Icon className={`w-4 h-4 ${selectedCategory === cat ? 'text-navy' : 'text-slate-400'}`} />
+                                      {cat}
+                                    </button>
+                                  </li>
+                                );
+                              })}
+                            </motion.ul>
+                          )}
+                        </AnimatePresence>
+                      </div>
+                    ))}
+                  </div>
                 </div>
               </aside>
 
@@ -731,6 +779,21 @@ export default function App() {
               />
             </div>
           </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Back to Top Button */}
+      <AnimatePresence>
+        {showBackToTop && (
+          <motion.button
+            initial={{ opacity: 0, scale: 0.5 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.5 }}
+            onClick={scrollToTop}
+            className="fixed bottom-8 right-8 z-50 w-12 h-12 bg-navy text-white rounded-full shadow-2xl flex items-center justify-center hover:scale-110 active:scale-90 transition-all"
+          >
+            <ChevronLeft className="w-6 h-6 rotate-90" />
+          </motion.button>
         )}
       </AnimatePresence>
 

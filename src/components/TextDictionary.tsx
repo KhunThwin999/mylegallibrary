@@ -199,17 +199,26 @@ export default function TextDictionary({ onBack }: TextDictionaryProps) {
                   placeholder="Search English or Myanmar terms..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full pl-10 pr-10 py-2.5 bg-white/10 border border-white/20 rounded-xl text-sm text-white placeholder:text-slate-400 focus:bg-white/20 focus:ring-4 focus:ring-white/5 focus:border-white/40 outline-none transition-all"
+                  className="w-full pl-10 pr-20 py-2.5 bg-white/10 border border-white/20 rounded-xl text-sm text-white placeholder:text-slate-400 focus:bg-white/20 focus:ring-4 focus:ring-white/5 focus:border-white/40 outline-none transition-all"
                   disabled={loading || !!error}
                 />
-                {searchTerm && (
+                <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1">
+                  {searchTerm && (
+                    <button 
+                      onClick={() => setSearchTerm('')}
+                      className="p-1.5 hover:bg-white/10 rounded-full text-slate-400 transition-colors"
+                      title="Clear search"
+                    >
+                      <X className="w-4 h-4" />
+                    </button>
+                  )}
                   <button 
-                    onClick={() => setSearchTerm('')}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 p-1 hover:bg-white/10 rounded-full text-slate-400 transition-colors"
+                    className="md:hidden px-2 py-1 bg-white/20 hover:bg-white/30 rounded-lg text-[10px] font-bold text-white transition-all uppercase tracking-tighter"
+                    onClick={() => (document.activeElement as HTMLElement)?.blur()}
                   >
-                    <X className="w-4 h-4" />
+                    Done
                   </button>
-                )}
+                </div>
               </div>
             </div>
           </div>
@@ -346,7 +355,26 @@ export default function TextDictionary({ onBack }: TextDictionaryProps) {
                         </p>
                       </div>
 
-                      <div className="mt-12 p-6 border border-dashed border-slate-200 rounded-2xl bg-slate-50/50">
+                      <div className="mt-8 grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div className="p-6 bg-white border border-slate-100 rounded-2xl shadow-sm">
+                          <h4 className="text-[10px] font-bold text-navy uppercase tracking-widest mb-3">Related Concepts</h4>
+                          <div className="flex flex-wrap gap-2">
+                            {['Legal Procedure', 'Court Ruling', 'Statutory Law', 'Jurisdiction'].map(tag => (
+                              <span key={tag} className="px-2.5 py-1 bg-slate-50 text-slate-500 text-[10px] font-medium rounded-lg border border-slate-100">
+                                {tag}
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+                        <div className="p-6 bg-white border border-slate-100 rounded-2xl shadow-sm">
+                          <h4 className="text-[10px] font-bold text-navy uppercase tracking-widest mb-3">Usage in Law</h4>
+                          <p className="text-xs text-slate-500 leading-relaxed">
+                            Commonly cited in {selectedEntry.type.toLowerCase()} proceedings and official documentation within the Myanmar legal framework.
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className="mt-8 p-6 border border-dashed border-slate-200 rounded-2xl bg-slate-50/50">
                         <p className="text-sm text-slate-500 leading-relaxed italic">
                           This term is part of the Myanmar Legal Library's comprehensive dictionary. Use the search bar to find more related terms.
                         </p>
@@ -403,6 +431,25 @@ export default function TextDictionary({ onBack }: TextDictionaryProps) {
                 <p className="text-xl text-slate-800 leading-relaxed">
                   {selectedEntry.definition}
                 </p>
+              </div>
+
+              <div className="mt-6 space-y-4">
+                <div className="p-5 bg-white border border-slate-100 rounded-xl shadow-sm">
+                  <h4 className="text-[10px] font-bold text-navy uppercase tracking-widest mb-3">Related Concepts</h4>
+                  <div className="flex flex-wrap gap-2">
+                    {['Legal Procedure', 'Court Ruling', 'Statutory Law'].map(tag => (
+                      <span key={tag} className="px-2 py-1 bg-slate-50 text-slate-500 text-[9px] font-medium rounded-md border border-slate-100">
+                        {tag}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+                <div className="p-5 bg-white border border-slate-100 rounded-xl shadow-sm">
+                  <h4 className="text-[10px] font-bold text-navy uppercase tracking-widest mb-3">Usage in Law</h4>
+                  <p className="text-xs text-slate-500 leading-relaxed">
+                    Commonly cited in {selectedEntry.type.toLowerCase()} proceedings and official documentation.
+                  </p>
+                </div>
               </div>
             </div>
           </motion.div>
