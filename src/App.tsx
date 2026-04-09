@@ -116,6 +116,17 @@ export default function App() {
     'International': ['International Law']
   };
 
+  useEffect(() => {
+    if (isSidebarOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = 'unset';
+    }
+    return () => {
+      document.body.style.overflow = 'unset';
+    };
+  }, [isSidebarOpen]);
+
   const copyEmail = () => {
     navigator.clipboard.writeText(supportEmail);
     setEmailCopied(true);
@@ -429,9 +440,22 @@ export default function App() {
             </section>
 
             <div className="max-w-7xl mx-auto px-4 py-8 flex flex-col md:flex-row gap-8">
+              {/* Sidebar Backdrop */}
+              <AnimatePresence>
+                {isSidebarOpen && (
+                  <motion.div 
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    onClick={() => setIsSidebarOpen(false)}
+                    className="fixed inset-0 z-40 bg-slate-900/40 backdrop-blur-sm md:hidden"
+                  />
+                )}
+              </AnimatePresence>
+
               {/* Sidebar */}
               <aside className={`
-                fixed inset-y-0 left-0 z-50 w-72 bg-white border-r border-slate-200 p-6 transform transition-transform duration-300 md:relative md:translate-x-0 md:bg-transparent md:border-none md:p-0 md:z-0
+                fixed inset-y-0 left-0 z-50 w-72 bg-white border-r border-slate-200 p-6 transform transition-transform duration-300 overflow-y-auto custom-scrollbar md:relative md:translate-x-0 md:bg-transparent md:border-none md:p-0 md:z-0
                 ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'}
               `}>
                 <div className="flex items-center justify-between mb-6 md:hidden">
