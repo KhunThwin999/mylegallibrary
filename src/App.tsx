@@ -330,7 +330,6 @@ export default function App() {
                 )}
               </button>
             ))}
-            <a href="#categories" className="text-slate-400 hover:text-navy transition-colors px-1">Categories</a>
           </nav>
 
           <div className="flex items-center gap-4">
@@ -432,7 +431,7 @@ export default function App() {
                       className="px-8 py-5 bg-slate-50 text-slate-600 rounded-2xl font-bold hover:bg-slate-100 transition-all flex items-center gap-2 whitespace-nowrap border border-transparent focus:border-navy/20"
                     >
                       <Filter className="w-5 h-5 text-slate-400" />
-                      <span>{selectedLetter === 'All' ? 'A-Z Filter' : `Letter: ${selectedLetter}`}</span>
+                      <span>{selectedLetter === 'All' ? 'A-Z' : `Letter: ${selectedLetter}`}</span>
                     </button>
                   </div>
                 </div>
@@ -459,7 +458,7 @@ export default function App() {
                 ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'}
               `}>
                 <div className="flex items-center justify-between mb-6 md:hidden">
-                  <h3 className="font-bold text-lg text-navy">Menu & Categories</h3>
+                  <h3 className="font-bold text-lg text-navy">Menu</h3>
                   <button onClick={() => setIsSidebarOpen(false)} className="p-2 hover:bg-slate-100 rounded-lg transition-colors">
                     <X className="w-6 h-6 text-slate-400" />
                   </button>
