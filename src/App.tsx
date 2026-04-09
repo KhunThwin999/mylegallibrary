@@ -661,85 +661,87 @@ export default function App() {
         )}
       </AnimatePresence>
 
-      <footer className="bg-white border-t border-slate-200 py-12 mt-20">
-        <div className="max-w-7xl mx-auto px-4">
-          <div className="flex flex-col md:flex-row justify-between gap-12 mb-12">
-            <div className="max-w-sm">
-              <div className="flex items-center gap-3 text-navy font-bold text-xl mb-4">
-                <button 
-                  onClick={() => setCurrentView('library')}
-                  className="w-8 h-8 bg-navy text-white rounded-lg flex items-center justify-center hover:opacity-80 transition-opacity"
-                >
-                  <Scale className="w-5 h-5" />
-                </button>
-                <button 
-                  onClick={() => setCurrentView('library')}
-                  className="hover:text-navy transition-colors"
-                >
-                  Myanmar Legal Library
-                </button>
+      {currentView !== 'text-dictionary' && (
+        <footer className="bg-white border-t border-slate-200 py-12 mt-20">
+          <div className="max-w-7xl mx-auto px-4">
+            <div className="flex flex-col md:flex-row justify-between gap-12 mb-12">
+              <div className="max-w-sm">
+                <div className="flex items-center gap-3 text-navy font-bold text-xl mb-4">
+                  <button 
+                    onClick={() => setCurrentView('library')}
+                    className="w-8 h-8 bg-navy text-white rounded-lg flex items-center justify-center hover:opacity-80 transition-opacity"
+                  >
+                    <Scale className="w-5 h-5" />
+                  </button>
+                  <button 
+                    onClick={() => setCurrentView('library')}
+                    className="hover:text-navy transition-colors"
+                  >
+                    Myanmar Legal Library
+                  </button>
+                </div>
+                <p className="text-slate-500 leading-relaxed text-sm">
+                  Your digital gateway to Myanmar's legal knowledge. Empowering citizens and professionals with accessible legal resources.
+                </p>
               </div>
-              <p className="text-slate-500 leading-relaxed text-sm">
-                Your digital gateway to Myanmar's legal knowledge. Empowering citizens and professionals with accessible legal resources.
-              </p>
-            </div>
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-8">
-              <div>
-                <h4 className="font-bold text-slate-900 mb-4 text-sm uppercase tracking-wider">Resources</h4>
-                <ul className="space-y-2 text-sm text-slate-500">
-                  <li><a href="#" className="hover:text-navy transition-colors">Constitution</a></li>
-                  <li><a href="#" className="hover:text-navy transition-colors">Civil Law</a></li>
-                  <li><a href="#" className="hover:text-navy transition-colors">Criminal Law</a></li>
-                </ul>
-              </div>
-              <div>
-                <h4 className="font-bold text-slate-900 mb-4 text-sm uppercase tracking-wider">Library</h4>
-                <ul className="space-y-2 text-sm text-slate-500">
-                  <li><button onClick={() => setCurrentView('text-dictionary')} className="hover:text-navy transition-colors">Myanmar-English Dictionary</button></li>
-                  <li><button onClick={() => setCurrentView('about')} className="hover:text-navy transition-colors">About Us</button></li>
-                  <li><a href="#" className="hover:text-navy transition-colors">Contact</a></li>
-                  <li><button onClick={() => setCurrentView('privacy')} className="hover:text-navy transition-colors">Privacy Policy</button></li>
-                </ul>
-              </div>
-              <div>
-                <h4 className="font-bold text-slate-900 mb-4 text-sm uppercase tracking-wider">Support</h4>
-                <div className="space-y-3">
-                  <div className="flex flex-col gap-2">
-                    <a href={`mailto:${supportEmail}`} className="text-sm text-navy font-medium hover:underline flex items-center gap-2">
-                      <Mail className="w-4 h-4" />
-                      {supportEmail}
-                    </a>
-                    <button 
-                      onClick={copyEmail}
-                      className="flex items-center gap-2 text-[10px] font-bold text-slate-400 hover:text-navy transition-colors uppercase tracking-widest"
-                    >
-                      {emailCopied ? (
-                        <>
-                          <Check className="w-3 h-3 text-green-500" />
-                          Copied!
-                        </>
-                      ) : (
-                        <>
-                          <Copy className="w-3 h-3" />
-                          Copy Email
-                        </>
-                      )}
-                    </button>
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-8">
+                <div>
+                  <h4 className="font-bold text-slate-900 mb-4 text-sm uppercase tracking-wider">Resources</h4>
+                  <ul className="space-y-2 text-sm text-slate-500">
+                    <li><a href="#" className="hover:text-navy transition-colors">Constitution</a></li>
+                    <li><a href="#" className="hover:text-navy transition-colors">Civil Law</a></li>
+                    <li><a href="#" className="hover:text-navy transition-colors">Criminal Law</a></li>
+                  </ul>
+                </div>
+                <div>
+                  <h4 className="font-bold text-slate-900 mb-4 text-sm uppercase tracking-wider">Library</h4>
+                  <ul className="space-y-2 text-sm text-slate-500">
+                    <li><button onClick={() => setCurrentView('text-dictionary')} className="hover:text-navy transition-colors">Myanmar-English Dictionary</button></li>
+                    <li><button onClick={() => setCurrentView('about')} className="hover:text-navy transition-colors">About Us</button></li>
+                    <li><a href="#" className="hover:text-navy transition-colors">Contact</a></li>
+                    <li><button onClick={() => setCurrentView('privacy')} className="hover:text-navy transition-colors">Privacy Policy</button></li>
+                  </ul>
+                </div>
+                <div>
+                  <h4 className="font-bold text-slate-900 mb-4 text-sm uppercase tracking-wider">Support</h4>
+                  <div className="space-y-3">
+                    <div className="flex flex-col gap-2">
+                      <a href={`mailto:${supportEmail}`} className="text-sm text-navy font-medium hover:underline flex items-center gap-2">
+                        <Mail className="w-4 h-4" />
+                        {supportEmail}
+                      </a>
+                      <button 
+                        onClick={copyEmail}
+                        className="flex items-center gap-2 text-[10px] font-bold text-slate-400 hover:text-navy transition-colors uppercase tracking-widest"
+                      >
+                        {emailCopied ? (
+                          <>
+                            <Check className="w-3 h-3 text-green-500" />
+                            Copied!
+                          </>
+                        ) : (
+                          <>
+                            <Copy className="w-3 h-3" />
+                            Copy Email
+                          </>
+                        )}
+                      </button>
+                    </div>
                   </div>
                 </div>
               </div>
             </div>
-          </div>
-          <div className="pt-8 border-t border-slate-100 flex flex-col sm:flex-row justify-between items-center gap-4 text-[10px] font-medium text-slate-400 uppercase tracking-widest">
-            <p>&copy; 2026 Myanmar Legal Library. All rights reserved.</p>
-            <div className="flex gap-6">
-              <a href="#" className="hover:text-navy transition-colors">Facebook</a>
-              <a href="#" className="hover:text-navy transition-colors">Twitter</a>
-              <a href="#" className="hover:text-navy transition-colors">LinkedIn</a>
+            <div className="pt-8 border-t border-slate-100 flex flex-col sm:flex-row justify-between items-center gap-4 text-[10px] font-medium text-slate-400 uppercase tracking-widest">
+              <p>&copy; 2026 Myanmar Legal Library. All rights reserved.</p>
+              <div className="flex gap-6">
+                <a href="#" className="hover:text-navy transition-colors">Facebook</a>
+                <a href="#" className="hover:text-navy transition-colors">Twitter</a>
+                <a href="#" className="hover:text-navy transition-colors">LinkedIn</a>
+              </div>
             </div>
           </div>
-        </div>
-      </footer>
+        </footer>
+      )}
     </div>
   );
 }
