@@ -571,7 +571,11 @@ export default function App() {
                             )}
 
                             {/* Overlay Actions */}
-                            <div className={`absolute inset-0 transition-all duration-500 flex items-center justify-center gap-4 p-6 ${touchedBookId === book.id ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4 md:group-hover:opacity-100 md:group-hover:translate-y-0'}`}>
+                            <div className={`absolute inset-0 transition-all duration-500 flex items-center justify-center gap-4 p-6 ${
+                              touchedBookId === book.id 
+                                ? 'opacity-100 translate-y-0 pointer-events-auto' 
+                                : 'opacity-0 translate-y-4 pointer-events-none md:group-hover:opacity-100 md:group-hover:translate-y-0 md:group-hover:pointer-events-auto'
+                            }`}>
                               <button 
                                 onClick={(e) => {
                                   e.stopPropagation();
