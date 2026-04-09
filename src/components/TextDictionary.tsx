@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
-import { Search, FileText, ArrowLeft, X, Loader2, Info } from 'lucide-react';
+import { Search, FileText, ArrowLeft, X, Loader2, Info, Volume2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 
 interface DictionaryEntry {
@@ -18,6 +18,18 @@ export default function TextDictionary({ onBack }: TextDictionaryProps) {
   const [error, setError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedEntry, setSelectedEntry] = useState<DictionaryEntry | null>(null);
+
+  const speak = (text: string) => {
+    if ('speechSynthesis' in window) {
+      // Cancel any ongoing speech
+      window.speechSynthesis.cancel();
+      
+      const utterance = new SpeechSynthesisUtterance(text);
+      utterance.lang = 'en-US'; // Default to English as requested
+      utterance.rate = 0.9; // Slightly slower for clarity
+      window.speechSynthesis.speak(utterance);
+    }
+  };
 
   useEffect(() => {
     const loadDictionary = async () => {
@@ -75,14 +87,64 @@ export default function TextDictionary({ onBack }: TextDictionaryProps) {
     loadDictionary();
   }, []);
 
+  const normalizeMyanmar = (text: string) => {
+    // Remove Myanmar punctuation and extra spaces
+    return text.replace(/[။၊]/g, '').replace(/\s+/g, ' ').trim().toLowerCase();
+  };
+
   const filteredEntries = useMemo(() => {
     if (!searchTerm.trim()) return [];
     const lowerSearch = searchTerm.toLowerCase();
-    return entries.filter(entry => 
-      entry.term.toLowerCase().includes(lowerSearch) ||
-      entry.type.toLowerCase().includes(lowerSearch) ||
-      entry.definition.toLowerCase().includes(lowerSearch)
-    );
+    const normalizedSearch = normalizeMyanmar(searchTerm);
+    
+    // Check if search term contains Myanmar characters
+    const isMyanmarSearch = /[\u1000-\u109F]/.test(searchTerm);
+
+    return entries.filter(entry => {
+      const termMatch = entry.term.toLowerCase().includes(lowerSearch);
+      const typeMatch = entry.type.toLowerCase().includes(lowerSearch);
+      const defMatch = entry.definition.toLowerCase().includes(lowerSearch);
+      
+      // Also try normalized match for Myanmar
+      const normalizedDefMatch = isMyanmarSearch && normalizeMyanmar(entry.definition).includes(normalizedSearch);
+      
+      return termMatch || typeMatch || defMatch || normalizedDefMatch;
+    }).sort((a, b) => {
+      if (isMyanmarSearch) {
+        const aNormDef = normalizeMyanmar(a.definition);
+        const bNormDef = normalizeMyanmar(b.definition);
+        
+        // Exact match in normalized definition
+        const aExact = aNormDef === normalizedSearch;
+        const bExact = bNormDef === normalizedSearch;
+        if (aExact && !bExact) return -1;
+        if (!aExact && bExact) return 1;
+
+        // Starts with match in normalized definition
+        const aStarts = aNormDef.startsWith(normalizedSearch);
+        const bStarts = bNormDef.startsWith(normalizedSearch);
+        if (aStarts && !bStarts) return -1;
+        if (!aStarts && bStarts) return 1;
+
+        // General inclusion
+        const aIncludes = aNormDef.includes(normalizedSearch);
+        const bIncludes = bNormDef.includes(normalizedSearch);
+        if (aIncludes && !bIncludes) return -1;
+        if (!aIncludes && bIncludes) return 1;
+      } else {
+        // Prioritize term matches for English search
+        const aTermMatch = a.term.toLowerCase().startsWith(lowerSearch);
+        const bTermMatch = b.term.toLowerCase().startsWith(lowerSearch);
+        if (aTermMatch && !bTermMatch) return -1;
+        if (!aTermMatch && bTermMatch) return 1;
+        
+        const aTermInc = a.term.toLowerCase().includes(lowerSearch);
+        const bTermInc = b.term.toLowerCase().includes(lowerSearch);
+        if (aTermInc && !bTermInc) return -1;
+        if (!aTermInc && bTermInc) return 1;
+      }
+      return 0;
+    });
   }, [entries, searchTerm]);
 
   // Clear selection if current selection is no longer in results
@@ -91,6 +153,8 @@ export default function TextDictionary({ onBack }: TextDictionaryProps) {
       setSelectedEntry(null);
     }
   }, [filteredEntries, selectedEntry]);
+
+  const isMyanmarSearch = /[\u1000-\u109F]/.test(searchTerm);
 
   return (
     <motion.div 
@@ -124,7 +188,7 @@ export default function TextDictionary({ onBack }: TextDictionaryProps) {
               <div>
                 <h1 className="text-2xl font-bold tracking-tight flex items-center gap-3">
                   <FileText className="w-8 h-8 text-slate-300" />
-                  Myanmar-English Dictionary
+                  English - Myanmar Law Dictionary
                 </h1>
               </div>
               
@@ -132,7 +196,7 @@ export default function TextDictionary({ onBack }: TextDictionaryProps) {
                 <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-white transition-colors" />
                 <input 
                   type="text"
-                  placeholder="Search terms..."
+                  placeholder="Search English or Myanmar terms..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   className="w-full pl-10 pr-10 py-2.5 bg-white/10 border border-white/20 rounded-xl text-sm text-white placeholder:text-slate-400 focus:bg-white/20 focus:ring-4 focus:ring-white/5 focus:border-white/40 outline-none transition-all"
@@ -174,39 +238,69 @@ export default function TextDictionary({ onBack }: TextDictionaryProps) {
                   <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
                     {filteredEntries.length} Results
                   </span>
+                  <div className="flex items-center gap-1.5 px-2 py-0.5 bg-navy/5 rounded-full border border-navy/10">
+                    <div className="w-1.5 h-1.5 rounded-full bg-navy animate-pulse"></div>
+                    <span className="text-[9px] font-bold text-navy uppercase tracking-tighter">Two-Way Search</span>
+                  </div>
                 </div>
                 <div className="flex-1 overflow-y-auto custom-scrollbar">
                   {!searchTerm.trim() ? (
                     <div className="p-12 text-center">
                       <Search className="w-10 h-10 text-slate-200 mx-auto mb-4" />
                       <p className="text-sm text-slate-500 font-medium">Type to start searching...</p>
-                      <p className="text-xs text-slate-400 mt-1">Enter a term to see definitions</p>
+                      <p className="text-xs text-slate-400 mt-1">Search by English term or Myanmar definition</p>
                     </div>
                   ) : filteredEntries.length > 0 ? (
                     <div className="divide-y divide-slate-50">
                       {filteredEntries.map((entry, index) => (
-                        <button
+                        <div
                           key={`${entry.term}-${index}`}
                           onClick={() => setSelectedEntry(entry)}
-                          className={`w-full text-left p-4 transition-all hover:bg-white group ${
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter' || e.key === ' ') {
+                              e.preventDefault();
+                              setSelectedEntry(entry);
+                            }
+                          }}
+                          role="button"
+                          tabIndex={0}
+                          className={`w-full text-left p-4 transition-all hover:bg-white group cursor-pointer outline-none focus-visible:ring-2 focus-visible:ring-navy/20 ${
                             selectedEntry === entry ? 'bg-white border-l-4 border-navy shadow-sm' : 'border-l-4 border-transparent'
                           }`}
                         >
                           <div className="flex items-start justify-between gap-2">
-                            <span className={`font-bold transition-colors ${selectedEntry === entry ? 'text-navy' : 'text-slate-700 group-hover:text-navy'}`}>
-                              {entry.term}
-                            </span>
+                            <div className="flex flex-col gap-1">
+                              <span className={`font-bold transition-colors ${selectedEntry === entry ? 'text-navy' : 'text-slate-700 group-hover:text-navy'}`}>
+                                {isMyanmarSearch ? entry.definition : entry.term}
+                              </span>
+                              {isMyanmarSearch && (
+                                <span className="text-[10px] text-slate-400 font-medium italic">
+                                  {entry.term}
+                                </span>
+                              )}
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  speak(entry.term);
+                                }}
+                                className="flex items-center gap-1.5 text-[10px] text-slate-400 hover:text-navy transition-colors w-fit"
+                              >
+                                <Volume2 className="w-3 h-3" />
+                                Listen
+                              </button>
+                            </div>
                             <span className="shrink-0 px-2 py-0.5 bg-slate-100 text-slate-400 rounded text-[9px] font-bold uppercase">
                               {entry.type}
                             </span>
                           </div>
-                        </button>
+                        </div>
                       ))}
                     </div>
                   ) : (
                     <div className="p-12 text-center">
                       <Search className="w-10 h-10 text-slate-200 mx-auto mb-4" />
                       <p className="text-sm text-slate-500">No matches found</p>
+                      <p className="text-xs text-slate-400 mt-1">Try searching in English or Myanmar</p>
                     </div>
                   )}
                 </div>
@@ -227,9 +321,18 @@ export default function TextDictionary({ onBack }: TextDictionaryProps) {
                         <span className="inline-block px-3 py-1 bg-navy/5 text-navy rounded-lg text-xs font-bold uppercase tracking-widest mb-4">
                           {selectedEntry.type}
                         </span>
-                        <h2 className="text-5xl font-bold text-slate-900 tracking-tight mb-6">
-                          {selectedEntry.term}
-                        </h2>
+                        <div className="flex items-center gap-4 mb-6">
+                          <h2 className="text-5xl font-bold text-slate-900 tracking-tight">
+                            {selectedEntry.term}
+                          </h2>
+                          <button
+                            onClick={() => speak(selectedEntry.term)}
+                            className="p-3 bg-navy text-white rounded-2xl hover:bg-navy/90 hover:scale-105 active:scale-95 transition-all shadow-lg shadow-navy/20"
+                            title="Listen to pronunciation"
+                          >
+                            <Volume2 className="w-6 h-6" />
+                          </button>
+                        </div>
                         <div className="h-1.5 w-20 bg-navy rounded-full"></div>
                       </div>
                       
@@ -285,9 +388,17 @@ export default function TextDictionary({ onBack }: TextDictionaryProps) {
               <span className="inline-block px-3 py-1 bg-navy/5 text-navy rounded-lg text-[10px] font-bold uppercase tracking-widest mb-4">
                 {selectedEntry.type}
               </span>
-              <h2 className="text-3xl font-bold text-slate-900 mb-6">
-                {selectedEntry.term}
-              </h2>
+              <div className="flex items-center gap-3 mb-6">
+                <h2 className="text-3xl font-bold text-slate-900">
+                  {selectedEntry.term}
+                </h2>
+                <button
+                  onClick={() => speak(selectedEntry.term)}
+                  className="p-2 bg-navy text-white rounded-xl active:scale-90 transition-all"
+                >
+                  <Volume2 className="w-5 h-5" />
+                </button>
+              </div>
               <div className="bg-slate-50 rounded-2xl p-6 border border-slate-100">
                 <p className="text-xl text-slate-800 leading-relaxed">
                   {selectedEntry.definition}

@@ -354,8 +354,8 @@ export default function App() {
                       <Book className="w-5 h-5" />
                     </div>
                     <div className="flex flex-col items-start">
-                      <span className="text-sm">Legal Dictionary</span>
-                      <span className="text-[10px] opacity-60 font-medium uppercase tracking-widest">Myanmar-English</span>
+                      <span className="text-sm">Law Dictionary</span>
+                      <span className="text-[10px] opacity-60 font-medium uppercase tracking-widest">English-Myanmar</span>
                     </div>
                   </button>
                   
@@ -696,7 +696,7 @@ export default function App() {
                 <div>
                   <h4 className="font-bold text-slate-900 mb-4 text-sm uppercase tracking-wider">Library</h4>
                   <ul className="space-y-2 text-sm text-slate-500">
-                    <li><button onClick={() => setCurrentView('text-dictionary')} className="hover:text-navy transition-colors">Myanmar-English Dictionary</button></li>
+                    <li><button onClick={() => setCurrentView('text-dictionary')} className="hover:text-navy transition-colors">English - Myanmar Law Dictionary</button></li>
                     <li><button onClick={() => setCurrentView('about')} className="hover:text-navy transition-colors">About Us</button></li>
                     <li><a href="#" className="hover:text-navy transition-colors">Contact</a></li>
                     <li><button onClick={() => setCurrentView('privacy')} className="hover:text-navy transition-colors">Privacy Policy</button></li>
