@@ -215,7 +215,7 @@ export default function App() {
   }, [books]);
 
   const filteredBooks = useMemo(() => {
-    return books.filter(book => {
+    const filtered = books.filter(book => {
       const matchesSearch = !searchTerm || 
         book.title.toLowerCase().includes(searchTerm.toLowerCase()) || 
         book.author.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -227,6 +227,8 @@ export default function App() {
 
       return matchesSearch && matchesYear && matchesCategory && matchesLetter;
     });
+
+    return filtered.sort((a, b) => a.title.localeCompare(b.title, 'my'));
   }, [books, searchTerm, selectedYear, selectedCategory, selectedLetter]);
 
   const totalPages = Math.ceil(filteredBooks.length / BOOKS_PER_PAGE);
