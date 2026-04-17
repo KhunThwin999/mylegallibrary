@@ -3,8 +3,21 @@ import ReactDOM from 'react-dom/client';
 import App from './App';
 import './index.css';
 
-ReactDOM.createRoot(document.getElementById('root')!).render(
+// Read initial data injected by the server
+let initialBooks = [];
+const dataElement = document.getElementById('__INITIAL_DATA__');
+if (dataElement && dataElement.textContent) {
+  try {
+    const data = JSON.parse(dataElement.textContent);
+    initialBooks = data.books || [];
+  } catch (e) {
+    console.error('Failed to parse initial data', e);
+  }
+}
+
+ReactDOM.hydrateRoot(
+  document.getElementById('root')!,
   <React.StrictMode>
-    <App />
+    <App initialBooks={initialBooks} />
   </React.StrictMode>
 );

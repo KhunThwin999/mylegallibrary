@@ -5,8 +5,11 @@
   "type": "module",
   "scripts": {
     "dev": "tsx server.ts",
-    "build": "vite build && tsc server.ts --outDir dist --module node16 --target esnext --moduleResolution node16 --esModuleInterop --skipLibCheck",
-    "start": "node dist/server.js",
+    "build": "npm run build:client && npm run build:server && npm run build:node",
+    "build:client": "vite build --outDir dist/client",
+    "build:server": "vite build --ssr src/entry-server.tsx --outDir dist/server",
+    "build:node": "tsc server.ts --outDir dist --module esnext --target esnext --moduleResolution node --esModuleInterop --skipLibCheck",
+    "start": "NODE_ENV=production node dist/server.js",
     "clean": "rm -rf dist",
     "lint": "tsc --noEmit"
   },

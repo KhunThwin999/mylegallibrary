@@ -22,7 +22,10 @@ import {
   Scale,
   Mail,
   Copy,
-  Check
+  Check,
+  CheckCircle2,
+  Bookmark,
+  History
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import AboutPage from './components/AboutPage';
@@ -76,9 +79,13 @@ function fixDriveLink(url: string, type: 'preview' | 'download' | 'cover' | 'thu
   return url;
 }
 
-export default function App() {
-  const [books, setBooks] = useState<LegalBook[]>([]);
-  const [loading, setLoading] = useState(true);
+interface AppProps {
+  initialBooks?: LegalBook[];
+}
+
+export default function App({ initialBooks = [] }: AppProps) {
+  const [books, setBooks] = useState<LegalBook[]>(initialBooks);
+  const [loading, setLoading] = useState(initialBooks.length === 0);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [selectedYear, setSelectedYear] = useState('All');
@@ -86,12 +93,42 @@ export default function App() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isAlphabetModalOpen, setIsAlphabetModalOpen] = useState(false);
   const [activePdf, setActivePdf] = useState<string | null>(null);
+  const [activeBookId, setActiveBookId] = useState<string | null>(null);
   const [viewerTitle, setViewerTitle] = useState('');
   const [emailCopied, setEmailCopied] = useState(false);
   const [touchedBookId, setTouchedBookId] = useState<string | null>(null);
   const [showBackToTop, setShowBackToTop] = useState(false);
   const [expandedGroups, setExpandedGroups] = useState<string[]>(['General Law']);
+  const [isHydrated, setIsHydrated] = useState(false);
+  const [readingStatus, setReadingStatus] = useState<Record<string, { read: boolean, lastPage?: number }>>(() => {
+    if (typeof window === 'undefined') return {}; // SSR safety
+    try {
+      const saved = localStorage.getItem('mll-reading-progress');
+      return saved ? JSON.parse(saved) : {};
+    } catch (e) {
+      return {};
+    }
+  });
   const supportEmail = 'support@myanmarlegallibrary.com';
+
+  useEffect(() => {
+    localStorage.setItem('mll-reading-progress', JSON.stringify(readingStatus));
+  }, [readingStatus]);
+
+  const toggleReadStatus = (e: React.MouseEvent, id: string) => {
+    e.stopPropagation();
+    setReadingStatus(prev => ({
+      ...prev,
+      [id]: { ...prev[id], read: !prev[id]?.read }
+    }));
+  };
+
+  const updateLastPage = (id: string, page: number) => {
+    setReadingStatus(prev => ({
+      ...prev,
+      [id]: { ...prev[id], lastPage: page }
+    }));
+  };
 
   useEffect(() => {
     const handleScroll = () => {
@@ -138,6 +175,8 @@ export default function App() {
 
   // Handle URL routing
   useEffect(() => {
+    setIsHydrated(true);
+    if (typeof window === 'undefined') return;
     const handleLocationChange = () => {
       const path = window.location.pathname;
       if (path === '/books') setCurrentView('library');
@@ -163,6 +202,8 @@ export default function App() {
   };
   
   useEffect(() => {
+    if (initialBooks.length > 0) return;
+
     const fetchBooks = async () => {
       try {
         const response = await fetch(GOOGLE_SHEET_URL);
@@ -229,8 +270,12 @@ export default function App() {
       return matchesSearch && matchesYear && matchesCategory && matchesLetter;
     });
 
-    return filtered.sort((a, b) => a.title.localeCompare(b.title, 'my'));
-  }, [books, searchTerm, selectedYear, selectedCategory, selectedLetter]);
+    // Only apply the complex locale sort if we are hydrated
+    // This prevents mismatches between Node.js sort and Browser sort on initial render
+    if (!isHydrated) return filtered;
+
+    return [...filtered].sort((a, b) => a.title.localeCompare(b.title, 'my'));
+  }, [books, searchTerm, selectedYear, selectedCategory, selectedLetter, isHydrated]);
 
   const totalPages = Math.ceil(filteredBooks.length / BOOKS_PER_PAGE);
   
@@ -243,14 +288,23 @@ export default function App() {
     setCurrentPage(1);
   }, [searchTerm, selectedCategory, selectedYear, selectedLetter]);
 
-  const openReader = (url: string, title: string) => {
-    setActivePdf(url);
+  const openReader = (url: string, title: string, id?: string) => {
+    let finalUrl = url;
+    if (id && readingStatus[id]?.lastPage) {
+      // Append page fragment - many PDF viewers respond to #page=N
+      finalUrl = `${url}#page=${readingStatus[id].lastPage}`;
+    }
+    setActivePdf(finalUrl);
     setViewerTitle(title);
+    if (id) setActiveBookId(id);
     document.body.style.overflow = 'hidden';
   };
 
   const closeReader = () => {
+    // If we have an active book and the viewer is closing, 
+    // we ensure the latest page is persisted (though manual input is required for drive)
     setActivePdf(null);
+    setActiveBookId(null);
     document.body.style.overflow = 'auto';
   };
 
@@ -646,10 +700,32 @@ export default function App() {
                             <h3 className="font-bold text-slate-900 line-clamp-2 mb-2 group-hover:text-navy transition-colors leading-tight text-lg flex-1">
                               {book.title}
                             </h3>
+
+                            {readingStatus[book.id]?.lastPage && (
+                              <div className="flex items-center gap-1.5 text-[10px] font-bold text-slate-400 mb-2">
+                                <History className="w-3 h-3" />
+                                LAST READ: PAGE {readingStatus[book.id].lastPage}
+                              </div>
+                            )}
                             
                             <p className="text-sm text-slate-400 mb-6 font-medium">By {book.author}</p>
                             
                             <div className="pt-4 border-t border-slate-50 flex items-center justify-between">
+                              <div className="flex items-center gap-2">
+                                <button 
+                                  onClick={(e) => toggleReadStatus(e, book.id)}
+                                  className={`p-2 rounded-lg transition-all flex items-center gap-1.5 ${
+                                    readingStatus[book.id]?.read 
+                                      ? 'bg-muted-green/10 text-muted-green' 
+                                      : 'bg-slate-50 text-slate-300 hover:text-navy hover:bg-slate-100'
+                                  }`}
+                                  title={readingStatus[book.id]?.read ? "Mark as unread" : "Mark as read"}
+                                >
+                                  <CheckCircle2 className={`w-4 h-4 ${readingStatus[book.id]?.read ? 'fill-muted-green/20' : ''}`} />
+                                  {readingStatus[book.id]?.read && <span className="text-[10px] font-bold uppercase tracking-wider">Read</span>}
+                                </button>
+                              </div>
+
                               <div className="flex items-center gap-2">
                                 <a 
                                   href={book.file}
@@ -662,7 +738,7 @@ export default function App() {
                                 <button 
                                   onClick={(e) => {
                                     e.stopPropagation();
-                                    openReader(book.read, book.title);
+                                    openReader(book.read, book.title, book.id);
                                   }}
                                   className="text-sm font-bold text-navy flex items-center gap-1.5 hover:gap-2 transition-all"
                                 >
@@ -811,16 +887,46 @@ export default function App() {
             className="fixed inset-0 z-[70] bg-slate-900 flex flex-col"
           >
             <div className="h-16 bg-slate-800 px-6 flex items-center justify-between text-white border-b border-slate-700">
-              <div className="flex items-center gap-3">
-                <BookOpen className="w-5 h-5 text-slate-400" />
+              <div className="flex items-center gap-3 min-w-0">
+                <BookOpen className="w-5 h-5 text-slate-400 shrink-0" />
                 <h3 className="font-semibold truncate max-w-md">{viewerTitle}</h3>
               </div>
-              <button 
-                onClick={closeReader}
-                className="p-2 hover:bg-slate-700 rounded-lg transition-colors"
-              >
-                <X className="w-6 h-6" />
-              </button>
+
+              <div className="flex items-center gap-4">
+                {activeBookId && (
+                  <div className="flex items-center gap-2 bg-slate-700 px-3 py-1.5 rounded-xl border border-slate-600 shadow-inner">
+                    <span className="hidden xs:inline text-[10px] font-bold text-slate-400 uppercase tracking-widest">Progress</span>
+                    <input 
+                      type="number" 
+                      min="1"
+                      placeholder="Pg"
+                      value={readingStatus[activeBookId]?.lastPage || ''}
+                      onChange={(e) => updateLastPage(activeBookId, parseInt(e.target.value) || 0)}
+                      className="w-10 sm:w-16 bg-slate-800 border border-slate-600 text-white text-xs font-bold focus:ring-1 focus:ring-navy rounded p-1 text-center transition-all focus:border-navy"
+                    />
+                    <div className="h-4 w-px bg-slate-600 mx-1" />
+                    <button 
+                      onClick={(e) => toggleReadStatus(e as any, activeBookId)}
+                      className={`flex items-center gap-1.5 px-2 py-1 rounded-lg transition-all ${
+                        readingStatus[activeBookId]?.read 
+                        ? 'text-muted-green bg-muted-green/10' 
+                        : 'text-slate-500 hover:text-white hover:bg-slate-700'
+                      }`}
+                    >
+                      <CheckCircle2 className={`w-4 h-4 ${readingStatus[activeBookId]?.read ? 'fill-muted-green/20' : ''}`} />
+                      <span className="hidden md:inline text-[10px] font-bold uppercase tracking-wider">
+                        {readingStatus[activeBookId]?.read ? 'Done' : 'Mark Done'}
+                      </span>
+                    </button>
+                  </div>
+                )}
+                <button 
+                  onClick={closeReader}
+                  className="p-2 hover:bg-slate-700 rounded-lg transition-colors"
+                >
+                  <X className="w-6 h-6" />
+                </button>
+              </div>
             </div>
             <div className="flex-1 bg-slate-800">
               <iframe 
