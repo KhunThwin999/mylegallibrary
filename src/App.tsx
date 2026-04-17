@@ -29,7 +29,6 @@ import AboutPage from './components/AboutPage';
 import PrivacyPolicy from './components/PrivacyPolicy';
 import TextDictionary from './components/TextDictionary';
 import LatestUpdates from './components/LatestUpdates';
-import AISearch from './components/AISearch';
 
 // Types
 interface LegalBook {
@@ -134,7 +133,7 @@ export default function App() {
     setTimeout(() => setEmailCopied(false), 2000);
   };
   const [currentPage, setCurrentPage] = useState(1);
-  const [currentView, setCurrentView] = useState<'library' | 'about' | 'privacy' | 'text-dictionary' | 'latest' | 'ai-search'>('library');
+  const [currentView, setCurrentView] = useState<'library' | 'about' | 'privacy' | 'text-dictionary' | 'latest'>('library');
 
   // Handle URL routing
   useEffect(() => {
@@ -143,7 +142,6 @@ export default function App() {
       if (path === '/books') setCurrentView('library');
       else if (path === '/dictionary') setCurrentView('text-dictionary');
       else if (path === '/latest') setCurrentView('latest');
-      else if (path === '/ai-search') setCurrentView('ai-search');
       else if (path === '/about') setCurrentView('about');
       else if (path === '/privacy') setCurrentView('privacy');
       else if (path === '/') setCurrentView('library');
@@ -158,7 +156,6 @@ export default function App() {
     setCurrentView(view);
     const path = view === 'library' ? '/' : 
                  view === 'text-dictionary' ? '/dictionary' : 
-                 view === 'ai-search' ? '/ai-search' :
                  `/${view}`;
     window.history.pushState({}, '', path);
     window.scrollTo(0, 0);
@@ -313,7 +310,6 @@ export default function App() {
           <nav className="hidden md:flex items-center gap-8 text-sm font-semibold">
             {[
               { id: 'library', label: 'Home' },
-              { id: 'ai-search', label: 'AI Search' },
               { id: 'text-dictionary', label: 'Dictionary' },
               { id: 'latest', label: 'Latest' },
               { id: 'about', label: 'About' }
@@ -383,19 +379,20 @@ export default function App() {
                       </p>
                       <div className="flex flex-wrap gap-4">
                         <button 
-                          onClick={() => navigate('ai-search')}
-                          className="px-8 py-4 bg-white text-navy rounded-2xl font-bold hover:bg-slate-50 transition-all shadow-xl shadow-navy/20 flex items-center gap-2 active:scale-95"
-                        >
-                          <Sparkles className="w-5 h-5" />
-                          Try AI Search
-                        </button>
-                        <button 
                           onClick={() => openReader(featuredBooks[0].read, featuredBooks[0].title)}
-                          className="px-8 py-4 bg-white/10 backdrop-blur-md text-white rounded-2xl font-bold hover:bg-white/20 transition-all border border-white/20 flex items-center gap-2 active:scale-95"
+                          className="px-8 py-4 bg-white text-navy rounded-2xl font-bold hover:bg-slate-50 transition-all shadow-xl shadow-navy/20 flex items-center gap-2 active:scale-95"
                         >
                           <BookOpen className="w-5 h-5" />
                           Read Now
                         </button>
+                        <a 
+                          href={featuredBooks[0].file}
+                          target="_blank"
+                          className="px-8 py-4 bg-white/10 backdrop-blur-md text-white rounded-2xl font-bold hover:bg-white/20 transition-all border border-white/20 flex items-center gap-2 active:scale-95"
+                        >
+                          <Download className="w-5 h-5" />
+                          Download PDF
+                        </a>
                       </div>
                     </div>
                   </div>
@@ -472,7 +469,6 @@ export default function App() {
                 {/* Mobile Quick Navigation */}
                 <div className="md:hidden mb-8 space-y-3">
                   {[
-                    { id: 'ai-search', label: 'AI Legal Search', sub: 'Instant Answers', icon: Sparkles },
                     { id: 'latest', label: 'Latest Updates', sub: 'New Arrivals', icon: Bell },
                     { id: 'text-dictionary', label: 'Law Dictionary', sub: 'English-Myanmar', icon: Book },
                     { id: 'about', label: 'About Library', sub: 'Our Mission', icon: Users }
@@ -723,8 +719,6 @@ export default function App() {
           </motion.div>
         ) : currentView === 'about' ? (
           <AboutPage onBack={() => navigate('library')} />
-        ) : currentView === 'ai-search' ? (
-          <AISearch onBack={() => navigate('library')} />
         ) : currentView === 'text-dictionary' ? (
           <TextDictionary onBack={() => navigate('library')} />
         ) : currentView === 'latest' ? (
