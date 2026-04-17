@@ -37,7 +37,10 @@ export default function LatestUpdates({ books, onBack, onRead }: LatestUpdatesPr
             <Bell className="w-8 h-8 text-navy animate-bounce" />
             Latest Updates
           </h1>
-          <p className="text-slate-500">Stay informed with the newest additions to our legal collection.</p>
+          <p className="text-slate-500 max-w-lg">
+            Stay informed with the newest additions to our <span className="text-navy font-semibold">Myanmar legal collection</span>. 
+            We regularly update our library with the latest <span className="text-navy font-semibold">Burma laws</span>, court rulings, and legal textbooks.
+          </p>
         </div>
         <button 
           onClick={onBack}
@@ -114,6 +117,19 @@ export default function LatestUpdates({ books, onBack, onRead }: LatestUpdatesPr
             <p className="text-slate-500">Check back later for new legal resources.</p>
           </div>
         )}
+      </div>
+
+      <div className="mt-16 grid grid-cols-1 md:grid-cols-3 gap-8">
+        {[
+          { title: "New Legislation", desc: "Access the most recently passed laws and statutory amendments in Myanmar." },
+          { title: "Court Rulings", desc: "Recent directives and precedents from the Supreme Court and regional courts." },
+          { title: "Legal Guides", desc: "Fresh textbooks and academic resources for law students and practitioners." }
+        ].map((item, i) => (
+          <div key={i} className="p-6 bg-white rounded-3xl border border-slate-100 shadow-sm">
+            <h4 className="text-sm font-bold text-navy uppercase tracking-widest mb-2">{item.title}</h4>
+            <p className="text-[11px] text-slate-400 leading-relaxed font-medium">{item.desc}</p>
+          </div>
+        ))}
       </div>
 
       <div className="mt-16 p-8 bg-navy rounded-[2.5rem] text-white text-center relative overflow-hidden">

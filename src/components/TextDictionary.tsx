@@ -254,10 +254,38 @@ export default function TextDictionary({ onBack }: TextDictionaryProps) {
                 </div>
                 <div className="flex-1 overflow-y-auto custom-scrollbar">
                   {!searchTerm.trim() ? (
-                    <div className="p-12 text-center">
-                      <Search className="w-10 h-10 text-slate-200 mx-auto mb-4" />
-                      <p className="text-sm text-slate-500 font-medium">Type to start searching...</p>
-                      <p className="text-xs text-slate-400 mt-1">Search by English term or Myanmar definition</p>
+                    <div className="flex flex-col h-full overflow-y-auto custom-scrollbar">
+                      <div className="p-12 text-center shrink-0">
+                        <Search className="w-10 h-10 text-slate-200 mx-auto mb-4" />
+                        <p className="text-sm text-slate-500 font-medium">Type to start searching...</p>
+                        <p className="text-xs text-slate-400 mt-1">Search by English term or Myanmar definition</p>
+                      </div>
+
+                      {/* SEO & Contextual Content Section */}
+                      <div className="px-6 pb-12 mt-auto">
+                        <div className="p-6 bg-slate-100/50 rounded-2xl border border-slate-200/50">
+                          <h2 className="text-[10px] font-black text-navy uppercase tracking-[0.2em] mb-4">Dictionary Info</h2>
+                          <section className="space-y-4">
+                            <div>
+                              <h3 className="text-xs font-bold text-slate-700 mb-1">Comprehensive Coverage</h3>
+                              <p className="text-[11px] text-slate-500 leading-relaxed">
+                                Our <span className="text-navy font-semibold">Myanmar Legal Dictionary</span> bridge the gap between English legal terminology and local Myanmar law contexts.
+                              </p>
+                            </div>
+                            <div>
+                              <h3 className="text-xs font-bold text-slate-700 mb-1">Searchable Database</h3>
+                              <p className="text-[11px] text-slate-500 leading-relaxed">
+                                Quickly find definitions for civil law, criminal law, and constitutional terms in both languages.
+                              </p>
+                            </div>
+                            <div className="pt-2 border-t border-slate-200">
+                              <p className="text-[9px] text-slate-400 font-medium italic">
+                                Optimized for Myanmar legal professionals, law students, and researchers.
+                              </p>
+                            </div>
+                          </section>
+                        </div>
+                      </div>
                     </div>
                   ) : filteredEntries.length > 0 ? (
                     <div className="divide-y divide-slate-50">
@@ -381,9 +409,19 @@ export default function TextDictionary({ onBack }: TextDictionaryProps) {
                       </div>
                     </motion.div>
                   ) : (
-                    <div className="flex-1 flex flex-col items-center justify-center text-slate-300">
-                      <FileText className="w-20 h-20 mb-4 opacity-20" />
-                      <p className="text-lg font-medium">Select a term to view details</p>
+                    <div className="flex-1 flex flex-col items-center justify-center text-slate-300 p-12 text-center">
+                      <FileText className="w-20 h-20 mb-6 opacity-20" />
+                      <h2 className="text-xl font-bold text-slate-900 mb-2">Legal Terminology Hub</h2>
+                      <p className="text-sm text-slate-500 max-w-sm mb-8">
+                        Select a term from the list or use the search bar to explore the <span className="text-navy font-semibold">Myanmar English Legal Dictionary</span>. Access bilingual definitions across multiple legal domains.
+                      </p>
+                      <div className="flex flex-wrap justify-center gap-3">
+                        {['Constitutional', 'Civil', 'Criminal', 'Corporate', 'Property'].map(domain => (
+                          <span key={domain} className="px-4 py-2 bg-slate-50 border border-slate-100 rounded-xl text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+                            {domain} Law
+                          </span>
+                        ))}
+                      </div>
                     </div>
                   )}
                 </AnimatePresence>
