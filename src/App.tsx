@@ -61,6 +61,7 @@ const MYANMAR_ALPHABET = ['က', 'ခ', 'ဂ', 'ဃ', 'င', 'စ', 'ဆ', 'ဇ'
 
 const GOOGLE_SHEET_URL = 'https://opensheet.elk.sh/1HCOpKGKhv_Ggm3r6dtvldqUynv5z6vLy98jjeOSrS4I/Sheet1';
 const BOOKS_PER_PAGE = 8;
+const PAGINATION_BLOCK_SIZE = 5;
 
 function fixDriveLink(url: string, type: 'preview' | 'download' | 'cover' | 'thumbnail' = 'preview') {
   if (!url) return '';
@@ -263,6 +264,19 @@ export default function App() {
   const featuredBooks = useMemo(() => {
     return books.filter(b => b.featured);
   }, [books]);
+
+  // Pagination Block Logic
+  const paginationRange = useMemo(() => {
+    const currentGroup = Math.ceil(currentPage / PAGINATION_BLOCK_SIZE);
+    const start = (currentGroup - 1) * PAGINATION_BLOCK_SIZE + 1;
+    const end = Math.min(start + PAGINATION_BLOCK_SIZE - 1, totalPages);
+    
+    const range = [];
+    for (let i = start; i <= end; i++) {
+      range.push(i);
+    }
+    return { range, start, end };
+  }, [currentPage, totalPages]);
 
   return (
     <div className="min-h-screen bg-off-white font-sans text-slate-900">
@@ -662,40 +676,48 @@ export default function App() {
                       ))}
                     </div>
 
-                    {/* Pagination Bar */}
+                    {/* Range-Based Pagination Bar */}
                     {totalPages > 1 && (
-                      <div className="mt-12 flex items-center justify-center gap-2">
-                        <button
-                          onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
-                          disabled={currentPage === 1}
-                          className="p-2 rounded-xl border border-slate-200 bg-white text-slate-600 hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-sm"
-                        >
-                          <ChevronLeft className="w-5 h-5" />
-                        </button>
-                        
-                        <div className="flex items-center gap-1">
-                          {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
-                            <button
-                              key={page}
-                              onClick={() => setCurrentPage(page)}
-                              className={`w-10 h-10 rounded-xl text-sm font-bold transition-all ${
-                                currentPage === page
-                                  ? 'bg-navy text-white shadow-lg shadow-slate-200'
-                                  : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-50 shadow-sm'
-                              }`}
-                            >
-                              {page}
-                            </button>
-                          ))}
-                        </div>
+                      <div className="mt-12 flex flex-col sm:flex-row items-center justify-center gap-4">
+                        <div className="flex items-center gap-2">
+                          <button
+                            onClick={() => setCurrentPage(Math.max(1, paginationRange.start - 1))}
+                            disabled={paginationRange.start === 1}
+                            className="flex items-center gap-1 px-4 py-2 rounded-xl border border-slate-200 bg-white text-slate-600 hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed transition-all shadow-sm font-bold text-xs uppercase tracking-widest"
+                          >
+                            <ChevronLeft className="w-4 h-4" />
+                            Prev
+                          </button>
+                          
+                          <div className="flex items-center gap-1.5 p-1.5 bg-slate-100/50 rounded-2xl border border-slate-200/50">
+                            {paginationRange.range.map((page) => (
+                              <button
+                                key={page}
+                                onClick={() => setCurrentPage(page)}
+                                className={`w-10 h-10 rounded-xl text-sm font-bold transition-all ${
+                                  currentPage === page
+                                    ? 'bg-navy text-white shadow-lg shadow-slate-200 scale-110 z-10'
+                                    : 'bg-white border border-slate-100 text-slate-500 hover:bg-slate-50 hover:text-navy shadow-sm'
+                                }`}
+                              >
+                                {page}
+                              </button>
+                            ))}
+                          </div>
 
-                        <button
-                          onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
-                          disabled={currentPage === totalPages}
-                          className="p-2 rounded-xl border border-slate-200 bg-white text-slate-600 hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-sm"
-                        >
-                          <ChevronRight className="w-5 h-5" />
-                        </button>
+                          <button
+                            onClick={() => setCurrentPage(Math.min(totalPages, paginationRange.end + 1))}
+                            disabled={paginationRange.end === totalPages}
+                            className="flex items-center gap-1 px-4 py-2 rounded-xl border border-slate-200 bg-white text-slate-600 hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed transition-all shadow-sm font-bold text-xs uppercase tracking-widest"
+                          >
+                            Next
+                            <ChevronRight className="w-4 h-4" />
+                          </button>
+                        </div>
+                        
+                        <div className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em]">
+                          Showing {paginationRange.start}-{paginationRange.end} of {totalPages} Pages
+                        </div>
                       </div>
                     )}
                   </>
