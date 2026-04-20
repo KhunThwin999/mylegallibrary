@@ -103,13 +103,25 @@ export default function App({ initialBooks = [] }: AppProps) {
   const [visitCount, setVisitCount] = useState(0);
 
   useEffect(() => {
-    // Simulated global visit count
-    const baseCount = 12450;
-    const stored = localStorage.getItem('mlb_visits');
-    const personalVisits = stored ? parseInt(stored) : 0;
-    const newPersonalVisits = personalVisits + 1;
-    localStorage.setItem('mlb_visits', newPersonalVisits.toString());
-    setVisitCount(baseCount + newPersonalVisits);
+    // Get initial visits from SSR if available
+    const initialDataElement = document.getElementById('__INITIAL_DATA__');
+    if (initialDataElement) {
+      try {
+        const initialData = JSON.parse(initialDataElement.textContent || '{}');
+        if (initialData.visits) {
+          setVisitCount(initialData.visits);
+          return;
+        }
+      } catch (e) {
+        console.error('Failed to parse hydration data', e);
+      }
+    }
+
+    // Fallback to API fetch
+    fetch('/api/stats')
+      .then(res => res.json())
+      .then(data => setVisitCount(data.visits || 0))
+      .catch(() => setVisitCount(0));
   }, []);
   const [viewerTitle, setViewerTitle] = useState('');
   const [emailCopied, setEmailCopied] = useState(false);

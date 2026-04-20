@@ -58,6 +58,31 @@ async function startServer() {
   app.get('/sitemap.xml', serveStaticFile('sitemap.xml', 'application/xml'));
   app.get('/robots.txt', serveStaticFile('robots.txt', 'text/plain'));
 
+  // Visitor Stats Tracking
+  let visitorCount = 0;
+  const countFilePath = path.join(process.cwd(), 'visitor-count.txt');
+  
+  if (fs.existsSync(countFilePath)) {
+    try {
+      visitorCount = parseInt(fs.readFileSync(countFilePath, 'utf-8')) || 0;
+    } catch (e) {
+      visitorCount = 0;
+    }
+  }
+
+  const incrementVisitorCount = () => {
+    visitorCount++;
+    try {
+      fs.writeFileSync(countFilePath, visitorCount.toString());
+    } catch (e) {
+      console.error('Failed to save visitor count', e);
+    }
+  };
+
+  app.get('/api/stats', (req, res) => {
+    res.json({ visits: visitorCount });
+  });
+
   // Book Request API
   app.post('/api/request-book', async (req, res) => {
     const { name, email: userEmail, bookTitle, details } = req.body;
@@ -152,7 +177,8 @@ async function startServer() {
         console.error('Server-side fetch failed', e);
       }
 
-      const initialData = { books: initialBooks };
+      incrementVisitorCount();
+      const initialData = { books: initialBooks, visits: visitorCount };
       const { html: appHtml } = await render(url, initialData);
 
       let html = template.replace(`<!--ssr-outlet-->`, appHtml);
