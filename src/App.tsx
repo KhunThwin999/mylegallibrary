@@ -27,7 +27,8 @@ import {
   Bookmark,
   History,
   BookPlus,
-  Send
+  Send,
+  Eye
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import AboutPage from './components/AboutPage';
@@ -99,6 +100,17 @@ export default function App({ initialBooks = [] }: AppProps) {
   const [activePdf, setActivePdf] = useState<string | null>(null);
   const [activeBookId, setActiveBookId] = useState<string | null>(null);
   const [isRequestModalOpen, setIsRequestModalOpen] = useState(false);
+  const [visitCount, setVisitCount] = useState(0);
+
+  useEffect(() => {
+    // Simulated global visit count
+    const baseCount = 12450;
+    const stored = localStorage.getItem('mlb_visits');
+    const personalVisits = stored ? parseInt(stored) : 0;
+    const newPersonalVisits = personalVisits + 1;
+    localStorage.setItem('mlb_visits', newPersonalVisits.toString());
+    setVisitCount(baseCount + newPersonalVisits);
+  }, []);
   const [viewerTitle, setViewerTitle] = useState('');
   const [emailCopied, setEmailCopied] = useState(false);
   const [touchedBookId, setTouchedBookId] = useState<string | null>(null);
@@ -410,7 +422,21 @@ export default function App({ initialBooks = [] }: AppProps) {
             ))}
           </nav>
 
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2 sm:gap-4">
+            {isHydrated && visitCount > 0 && (
+              <motion.div 
+                initial={{ opacity: 0, x: 10 }}
+                animate={{ opacity: 1, x: 0 }}
+                className="flex items-center gap-2 px-3 py-1 bg-slate-50 border border-slate-200 rounded-full font-bold text-[10px] tracking-tight text-slate-500 shrink-0"
+              >
+                <div className="relative flex items-center justify-center">
+                  <div className="absolute w-2 h-2 bg-amber-400 rounded-full animate-pulse opacity-40" />
+                  <div className="relative w-1.5 h-1.5 bg-amber-500 rounded-full" />
+                </div>
+                <span className="text-slate-400 font-medium hidden sm:inline">VISITS:</span>
+                <span className="text-navy font-black">{visitCount.toLocaleString()}</span>
+              </motion.div>
+            )}
             <button 
               onClick={() => setIsRequestModalOpen(true)}
               className="hidden sm:flex items-center gap-2 px-4 py-2 bg-navy/5 text-navy rounded-xl text-sm font-bold hover:bg-navy/10 transition-all border border-navy/10"
