@@ -3,6 +3,7 @@ import { createServer as createViteServer } from 'vite';
 import * as path from 'path';
 import { fileURLToPath } from 'url';
 import * as fs from 'fs';
+import { Resend } from 'resend';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -24,6 +25,7 @@ function fixDriveLink(url: string, type: 'preview' | 'download' | 'cover' | 'thu
 
 async function startServer() {
   const app = express();
+  app.use(express.json());
   const port = 3000;
 
   let vite: any;
@@ -55,6 +57,56 @@ async function startServer() {
 
   app.get('/sitemap.xml', serveStaticFile('sitemap.xml', 'application/xml'));
   app.get('/robots.txt', serveStaticFile('robots.txt', 'text/plain'));
+
+  // Book Request API
+  app.post('/api/request-book', async (req, res) => {
+    const { name, email: userEmail, bookTitle, details } = req.body;
+
+    if (!bookTitle) {
+      return res.status(400).json({ error: 'Book title is required' });
+    }
+
+    const resendApiKey = process.env.RESEND_API_KEY;
+    
+    if (!resendApiKey) {
+      console.warn('RESEND_API_KEY is not set. Using fallback console log.');
+      console.log('--- NEW BOOK REQUEST ---');
+      console.log('Book:', bookTitle);
+      console.log('From:', name || 'Anonymous', `(${userEmail || 'No Email'})`);
+      console.log('Details:', details || 'No additional details');
+      console.log('------------------------');
+      return res.json({ success: true, message: 'Request logged (Service not configured)' });
+    }
+
+    try {
+      const resend = new Resend(resendApiKey);
+      const { data, error } = await resend.emails.send({
+        from: 'Myanmar Legal Library <onboarding@resend.dev>',
+        to: ['findjobe.taunggyi@gmail.com'],
+        subject: `New Book Request: ${bookTitle}`,
+        html: `
+          <h3>New Book Request Recieved</h3>
+          <p><strong>Book Title:</strong> ${bookTitle}</p>
+          <p><strong>Requested By:</strong> ${name || 'Anonymous'}</p>
+          <p><strong>Contact Email:</strong> ${userEmail || 'N/A'}</p>
+          <p><strong>Additional Details:</strong></p>
+          <p>${details || 'None provided'}</p>
+          <hr />
+          <p>This message was sent from the Myanmar Legal Library Request System.</p>
+        `
+      });
+
+      if (error) {
+        console.error('Resend error:', error);
+        return res.status(500).json({ error: 'Failed to send request' });
+      }
+
+      res.json({ success: true, data });
+    } catch (err) {
+      console.error('Unexpected error:', err);
+      res.status(500).json({ error: 'Server error' });
+    }
+  });
 
   app.get('*', async (req, res) => {
     const url = req.originalUrl;

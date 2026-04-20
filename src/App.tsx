@@ -25,13 +25,17 @@ import {
   Check,
   CheckCircle2,
   Bookmark,
-  History
+  History,
+  BookPlus,
+  Send
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import AboutPage from './components/AboutPage';
 import PrivacyPolicy from './components/PrivacyPolicy';
 import TextDictionary from './components/TextDictionary';
 import LatestUpdates from './components/LatestUpdates';
+import RequestBookForm from './components/RequestBookForm';
+import LegalRulings from './components/LegalRulings';
 
 // Types
 interface LegalBook {
@@ -94,6 +98,7 @@ export default function App({ initialBooks = [] }: AppProps) {
   const [isAlphabetModalOpen, setIsAlphabetModalOpen] = useState(false);
   const [activePdf, setActivePdf] = useState<string | null>(null);
   const [activeBookId, setActiveBookId] = useState<string | null>(null);
+  const [isRequestModalOpen, setIsRequestModalOpen] = useState(false);
   const [viewerTitle, setViewerTitle] = useState('');
   const [emailCopied, setEmailCopied] = useState(false);
   const [touchedBookId, setTouchedBookId] = useState<string | null>(null);
@@ -171,7 +176,7 @@ export default function App({ initialBooks = [] }: AppProps) {
     setTimeout(() => setEmailCopied(false), 2000);
   };
   const [currentPage, setCurrentPage] = useState(1);
-  const [currentView, setCurrentView] = useState<'library' | 'about' | 'privacy' | 'text-dictionary' | 'latest'>('library');
+  const [currentView, setCurrentView] = useState<'library' | 'about' | 'privacy' | 'text-dictionary' | 'latest' | 'legal-rulings'>('library');
 
   // Handle URL routing
   useEffect(() => {
@@ -184,6 +189,7 @@ export default function App({ initialBooks = [] }: AppProps) {
       else if (path === '/latest') setCurrentView('latest');
       else if (path === '/about') setCurrentView('about');
       else if (path === '/privacy') setCurrentView('privacy');
+      else if (path === '/rulings') setCurrentView('legal-rulings');
       else if (path === '/') setCurrentView('library');
     };
 
@@ -192,10 +198,11 @@ export default function App({ initialBooks = [] }: AppProps) {
     return () => window.removeEventListener('popstate', handleLocationChange);
   }, []);
 
-  const navigate = (view: typeof currentView) => {
+  const navigate = (view: 'library' | 'about' | 'privacy' | 'text-dictionary' | 'latest' | 'legal-rulings') => {
     setCurrentView(view);
     const path = view === 'library' ? '/' : 
                  view === 'text-dictionary' ? '/dictionary' : 
+                 view === 'legal-rulings' ? '/rulings' :
                  `/${view}`;
     window.history.pushState({}, '', path);
     window.scrollTo(0, 0);
@@ -378,6 +385,7 @@ export default function App({ initialBooks = [] }: AppProps) {
           <nav className="hidden md:flex items-center gap-8 text-sm font-semibold">
             {[
               { id: 'library', label: 'Home' },
+              { id: 'legal-rulings', label: 'Rulings' },
               { id: 'text-dictionary', label: 'Dictionary' },
               { id: 'latest', label: 'Latest' },
               { id: 'about', label: 'About' }
@@ -403,6 +411,13 @@ export default function App({ initialBooks = [] }: AppProps) {
           </nav>
 
           <div className="flex items-center gap-4">
+            <button 
+              onClick={() => setIsRequestModalOpen(true)}
+              className="hidden sm:flex items-center gap-2 px-4 py-2 bg-navy/5 text-navy rounded-xl text-sm font-bold hover:bg-navy/10 transition-all border border-navy/10"
+            >
+              <BookPlus className="w-4 h-4" />
+              <span>Request</span>
+            </button>
             <button 
               onClick={() => setIsSidebarOpen(!isSidebarOpen)}
               className="p-2 hover:bg-slate-100 rounded-lg md:hidden"
@@ -538,13 +553,19 @@ export default function App({ initialBooks = [] }: AppProps) {
                 <div className="md:hidden mb-8 space-y-3">
                   {[
                     { id: 'latest', label: 'Latest Updates', sub: 'New Arrivals', icon: Bell },
+                    { id: 'legal-rulings', label: 'Legal Rulings', sub: 'Court Decisions', icon: Scale },
                     { id: 'text-dictionary', label: 'Law Dictionary', sub: 'English-Myanmar', icon: Book },
-                    { id: 'about', label: 'About Library', sub: 'Our Mission', icon: Users }
+                    { id: 'about', label: 'About Library', sub: 'Our Mission', icon: Users },
+                    { id: 'request', label: 'Request Book', sub: 'Submit Idea', icon: BookPlus }
                   ].map((item) => (
                     <button
                       key={item.id}
                       onClick={() => {
-                        navigate(item.id as any);
+                        if (item.id === 'request') {
+                          setIsRequestModalOpen(true);
+                        } else {
+                          navigate(item.id as any);
+                        }
                         setIsSidebarOpen(false);
                       }}
                       className={`w-full flex items-center gap-4 px-5 py-4 rounded-2xl font-bold transition-all active:scale-[0.98] ${
@@ -796,6 +817,26 @@ export default function App({ initialBooks = [] }: AppProps) {
                         </div>
                       </div>
                     )}
+
+                    {/* Book Request CTA */}
+                    <div className="mt-12 p-8 bg-slate-50 rounded-[2.5rem] border border-slate-200/60 flex flex-col md:flex-row items-center justify-between gap-6">
+                      <div className="flex items-center gap-6">
+                        <div className="w-16 h-16 bg-white rounded-3xl flex items-center justify-center shadow-sm border border-slate-100">
+                          <BookPlus className="w-8 h-8 text-navy" />
+                        </div>
+                        <div>
+                          <h4 className="text-xl font-bold text-slate-900 mb-1">Can't find a specific book?</h4>
+                          <p className="text-sm text-slate-500">Request any legal document and we'll try to find it for you.</p>
+                        </div>
+                      </div>
+                      <button 
+                        onClick={() => setIsRequestModalOpen(true)}
+                        className="px-8 py-4 bg-navy text-white rounded-2xl font-bold hover:bg-navy/90 transition-all shadow-xl shadow-navy/20 flex items-center gap-2 active:scale-95"
+                      >
+                        <Send className="w-5 h-5" />
+                        Request Now
+                      </button>
+                    </div>
                   </>
                 ) : (
                   <div className="flex flex-col items-center justify-center py-20 text-center">
@@ -804,12 +845,20 @@ export default function App({ initialBooks = [] }: AppProps) {
                     </div>
                     <h3 className="text-xl font-bold text-slate-900 mb-2">No books found</h3>
                     <p className="text-slate-500 max-w-xs mx-auto mb-8">Try adjusting your search or filters to find what you're looking for.</p>
-                    <button 
-                      onClick={resetFilters}
-                      className="px-6 py-2.5 bg-navy text-white rounded-xl font-bold hover:bg-navy/90 transition-all shadow-lg shadow-slate-200"
-                    >
-                      Clear All Filters
-                    </button>
+                    <div className="flex flex-col sm:flex-row gap-4">
+                      <button 
+                        onClick={resetFilters}
+                        className="px-6 py-2.5 bg-navy text-white rounded-xl font-bold hover:bg-navy/90 transition-all shadow-lg shadow-slate-200"
+                      >
+                        Clear All Filters
+                      </button>
+                      <button 
+                        onClick={() => setIsRequestModalOpen(true)}
+                        className="px-6 py-2.5 bg-white border border-slate-200 text-slate-600 rounded-xl font-bold hover:bg-slate-50 transition-all"
+                      >
+                        Request a Book
+                      </button>
+                    </div>
                   </div>
                 )}
               </main>
@@ -821,6 +870,8 @@ export default function App({ initialBooks = [] }: AppProps) {
           <TextDictionary onBack={() => navigate('library')} />
         ) : currentView === 'latest' ? (
           <LatestUpdates books={books} onBack={() => navigate('library')} onRead={openReader} />
+        ) : currentView === 'legal-rulings' ? (
+          <LegalRulings books={books} onBack={() => navigate('library')} onRead={openReader} />
         ) : (
           <PrivacyPolicy onBack={() => navigate('library')} />
         )}
@@ -1036,6 +1087,11 @@ export default function App({ initialBooks = [] }: AppProps) {
           </div>
         </footer>
       )}
+
+      <RequestBookForm 
+        isOpen={isRequestModalOpen} 
+        onClose={() => setIsRequestModalOpen(false)} 
+      />
     </div>
   );
 }
