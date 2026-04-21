@@ -5,7 +5,7 @@ import App from './App';
 export async function render(url: string, initialData?: any) {
   const html = renderToString(
     <React.StrictMode>
-      <App initialBooks={initialData?.books} />
+      <App initialBooks={initialData?.books} initialVisits={initialData?.visits} />
     </React.StrictMode>
   );
   return { html };

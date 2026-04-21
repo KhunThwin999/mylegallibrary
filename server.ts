@@ -36,7 +36,7 @@ async function startServer() {
     });
     app.use(vite.middlewares);
   } else {
-    app.use(express.static(path.join(process.cwd(), 'dist/client')));
+    app.use(express.static(path.join(process.cwd(), 'dist/client'), { index: false }));
   }
 
   // Explicitly serve sitemap.xml and robots.txt

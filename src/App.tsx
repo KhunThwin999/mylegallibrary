@@ -86,9 +86,10 @@ function fixDriveLink(url: string, type: 'preview' | 'download' | 'cover' | 'thu
 
 interface AppProps {
   initialBooks?: LegalBook[];
+  initialVisits?: number;
 }
 
-export default function App({ initialBooks = [] }: AppProps) {
+export default function App({ initialBooks = [], initialVisits = 0 }: AppProps) {
   const [books, setBooks] = useState<LegalBook[]>(initialBooks);
   const [loading, setLoading] = useState(initialBooks.length === 0);
   const [searchTerm, setSearchTerm] = useState('');
@@ -100,7 +101,7 @@ export default function App({ initialBooks = [] }: AppProps) {
   const [activePdf, setActivePdf] = useState<string | null>(null);
   const [activeBookId, setActiveBookId] = useState<string | null>(null);
   const [isRequestModalOpen, setIsRequestModalOpen] = useState(false);
-  const [visitCount, setVisitCount] = useState(0);
+  const [visitCount, setVisitCount] = useState(initialVisits);
 
   useEffect(() => {
     // Get initial visits from SSR if available
@@ -120,9 +121,11 @@ export default function App({ initialBooks = [] }: AppProps) {
     // Fallback to API fetch
     fetch('/api/stats')
       .then(res => res.json())
-      .then(data => setVisitCount(data.visits || 0))
-      .catch(() => setVisitCount(0));
-  }, []);
+      .then(data => {
+        if (data.visits) setVisitCount(data.visits);
+      })
+      .catch((err) => console.error('Failed to fetch stats', err));
+  }, [initialVisits]);
   const [viewerTitle, setViewerTitle] = useState('');
   const [emailCopied, setEmailCopied] = useState(false);
   const [touchedBookId, setTouchedBookId] = useState<string | null>(null);
@@ -435,7 +438,7 @@ export default function App({ initialBooks = [] }: AppProps) {
           </nav>
 
           <div className="flex items-center gap-2 sm:gap-4">
-            {isHydrated && visitCount > 0 && (
+            {visitCount > 0 && (
               <motion.div 
                 initial={{ opacity: 0, x: 10 }}
                 animate={{ opacity: 1, x: 0 }}
