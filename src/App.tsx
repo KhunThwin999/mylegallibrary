@@ -422,6 +422,15 @@ export default function App({ initialBooks = [], initialVisits = 0, initialPath 
     return books.filter(b => b.featured);
   }, [books]);
 
+  const rulingCount = useMemo(() => {
+    return books.filter(book => 
+      book.title.includes('စီရင်ထုံး') || 
+      book.category.includes('စီရင်ထုံး') ||
+      book.title.toLowerCase().includes('ruling') ||
+      book.title.toLowerCase().includes('decision')
+    ).length;
+  }, [books]);
+
   // Pagination Block Logic
   const paginationRange = useMemo(() => {
     const currentGroup = Math.ceil(currentPage / PAGINATION_BLOCK_SIZE);
@@ -550,7 +559,12 @@ export default function App({ initialBooks = [], initialVisits = 0, initialPath 
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
           >
-            <LandingPage onNavigate={navigate} visitCount={visitCount} />
+            <LandingPage 
+              onNavigate={navigate} 
+              visitCount={visitCount} 
+              bookCount={books.length}
+              rulingCount={rulingCount}
+            />
           </motion.div>
         ) : currentView === 'book-detail' && selectedBookId && books.find(b => b.id === selectedBookId) ? (
           <motion.div

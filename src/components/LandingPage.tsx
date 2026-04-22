@@ -17,14 +17,16 @@ import {
 interface LandingPageProps {
   onNavigate: (view: any, id?: string) => void;
   visitCount: number;
+  bookCount: number;
+  rulingCount: number;
 }
 
-export default function LandingPage({ onNavigate, visitCount }: LandingPageProps) {
+export default function LandingPage({ onNavigate, visitCount, bookCount, rulingCount }: LandingPageProps) {
   const stats = [
-    { label: 'Legal Resources', value: '500+', icon: Database },
-    { label: 'Active Users', value: '10K+', icon: Users },
-    { label: 'Court Rulings', value: '2K+', icon: Gavel },
-    { label: 'Daily Visits', value: visitCount.toLocaleString(), icon: Sparkles },
+    { label: 'Legal Resources', value: bookCount.toLocaleString() + '+', icon: Database },
+    { label: 'Estimated Users', value: (Math.round(visitCount * 0.75)).toLocaleString() + '+', icon: Users },
+    { label: 'Court Rulings', value: rulingCount.toLocaleString(), icon: Gavel },
+    { label: 'Total Visits', value: visitCount.toLocaleString(), icon: Sparkles },
   ];
 
   const features = [
