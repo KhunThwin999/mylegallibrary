@@ -28,7 +28,8 @@ import {
   History,
   BookPlus,
   Send,
-  Eye
+  Eye,
+  Info
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import AboutPage from './components/AboutPage';
@@ -37,6 +38,9 @@ import TextDictionary from './components/TextDictionary';
 import LatestUpdates from './components/LatestUpdates';
 import RequestBookForm from './components/RequestBookForm';
 import LegalRulings from './components/LegalRulings';
+import LandingPage from './components/LandingPage';
+import BookDetail from './components/BookDetail';
+import CategoryLandingPage from './components/CategoryLandingPage';
 
 // Types
 interface LegalBook {
@@ -51,6 +55,20 @@ interface LegalBook {
   file: string;
   featured?: boolean | string;
 }
+
+// Category Mappings for Bilingual Support
+const CATEGORIES_BILINGUAL: Record<string, { en: string; my: string }> = {
+  'Law & Constitution': { en: 'Law & Constitution', my: 'ဥပဒေနှင့် ဖွဲ့စည်းပုံအခြေခံဥပဒေ' },
+  'Police Procedure': { en: 'Police Procedure', my: 'ရဲလက်စွဲနှင့် လုပ်ထုံးလုပ်နည်းများ' },
+  'Penal Code': { en: 'Penal Code', my: 'ရာဇသတ်ကြီး ဥပဒေ' },
+  'Civil Law': { en: 'Civil Law', my: 'တရားမ ဥပဒေ' },
+  'Criminal Law': { en: 'Criminal Law', my: 'ရာဇဝတ် ဥပဒေ' },
+  'Land Law': { en: 'Land Law', my: 'မြေယာ ဥပဒေ' },
+  'Business Law': { en: 'Business Law', my: 'စီးပွားရေး ဥပဒေ' },
+  'International Law': { en: 'International Law', my: 'အပြည်ပြည်ဆိုင်ရာ ဥပဒေ' },
+  'Legal Rulings': { en: 'Legal Rulings', my: 'စီရင်ထုံးများ' },
+  'Latest Updates': { en: 'Latest Updates', my: 'နောက်ဆုံးထွက် စာအုပ်များ' },
+};
 
 const CATEGORY_ICONS: Record<string, any> = {
   'All': LayoutGrid,
@@ -87,9 +105,10 @@ function fixDriveLink(url: string, type: 'preview' | 'download' | 'cover' | 'thu
 interface AppProps {
   initialBooks?: LegalBook[];
   initialVisits?: number;
+  initialPath?: string;
 }
 
-export default function App({ initialBooks = [], initialVisits = 0 }: AppProps) {
+export default function App({ initialBooks = [], initialVisits = 0, initialPath = '/' }: AppProps) {
   const [books, setBooks] = useState<LegalBook[]>(initialBooks);
   const [loading, setLoading] = useState(initialBooks.length === 0);
   const [searchTerm, setSearchTerm] = useState('');
@@ -203,7 +222,28 @@ export default function App({ initialBooks = [], initialVisits = 0 }: AppProps) 
     setTimeout(() => setEmailCopied(false), 2000);
   };
   const [currentPage, setCurrentPage] = useState(1);
-  const [currentView, setCurrentView] = useState<'library' | 'about' | 'privacy' | 'text-dictionary' | 'latest' | 'legal-rulings'>('library');
+  const [currentView, setCurrentView] = useState<'home' | 'library' | 'about' | 'privacy' | 'text-dictionary' | 'latest' | 'legal-rulings' | 'book-detail' | 'category-landing'>(() => {
+    if (initialPath.startsWith('/book/')) return 'book-detail';
+    if (initialPath === '/dictionary') return 'text-dictionary';
+    if (initialPath === '/latest') return 'latest';
+    if (initialPath === '/about') return 'about';
+    if (initialPath === '/privacy') return 'privacy';
+    if (initialPath === '/rulings') return 'legal-rulings';
+    if (initialPath === '/books' || initialPath === '/library') return 'library';
+    if (initialPath === '/penal-code' || initialPath === '/civil-law') return 'category-landing';
+    return 'home';
+  });
+
+  const [selectedBookId, setSelectedBookId] = useState<string | null>(() => {
+    if (initialPath.startsWith('/book/')) return initialPath.split('/book/')[1];
+    return null;
+  });
+
+  const [landingCategory, setLandingCategory] = useState<string | null>(() => {
+    if (initialPath === '/penal-code') return 'Penal Code';
+    if (initialPath === '/civil-law') return 'Civil Law';
+    return null;
+  });
 
   // Handle URL routing
   useEffect(() => {
@@ -211,13 +251,26 @@ export default function App({ initialBooks = [], initialVisits = 0 }: AppProps) 
     if (typeof window === 'undefined') return;
     const handleLocationChange = () => {
       const path = window.location.pathname;
-      if (path === '/books') setCurrentView('library');
+      if (path.startsWith('/book/')) {
+        const id = path.split('/book/')[1];
+        setSelectedBookId(id);
+        setCurrentView('book-detail');
+      }
+      else if (path === '/books' || path === '/library') setCurrentView('library');
       else if (path === '/dictionary') setCurrentView('text-dictionary');
       else if (path === '/latest') setCurrentView('latest');
       else if (path === '/about') setCurrentView('about');
       else if (path === '/privacy') setCurrentView('privacy');
       else if (path === '/rulings') setCurrentView('legal-rulings');
-      else if (path === '/') setCurrentView('library');
+      else if (path === '/penal-code') {
+        setLandingCategory('Penal Code');
+        setCurrentView('category-landing');
+      }
+      else if (path === '/civil-law') {
+        setLandingCategory('Civil Law');
+        setCurrentView('category-landing');
+      }
+      else if (path === '/') setCurrentView('home');
     };
 
     handleLocationChange();
@@ -225,14 +278,26 @@ export default function App({ initialBooks = [], initialVisits = 0 }: AppProps) 
     return () => window.removeEventListener('popstate', handleLocationChange);
   }, []);
 
-  const navigate = (view: 'library' | 'about' | 'privacy' | 'text-dictionary' | 'latest' | 'legal-rulings') => {
+  const navigate = (view: 'home' | 'library' | 'about' | 'privacy' | 'text-dictionary' | 'latest' | 'legal-rulings' | 'book-detail' | 'category-landing', id?: string) => {
     setCurrentView(view);
-    const path = view === 'library' ? '/' : 
-                 view === 'text-dictionary' ? '/dictionary' : 
-                 view === 'legal-rulings' ? '/rulings' :
-                 `/${view}`;
+    let path = '/';
+    if (view === 'library') path = '/books';
+    else if (view === 'text-dictionary') path = '/dictionary';
+    else if (view === 'legal-rulings') path = '/rulings';
+    else if (view === 'book-detail' && id) {
+      path = `/book/${id}`;
+      setSelectedBookId(id);
+    }
+    else if (view === 'category-landing' && id) {
+      setLandingCategory(id);
+      path = `/${id.toLowerCase().replace(/\s+/g, '-')}`;
+    }
+    else if (view === 'home') path = '/';
+    else path = `/${view}`;
+
     window.history.pushState({}, '', path);
     window.scrollTo(0, 0);
+    setIsSidebarOpen(false);
   };
   
   useEffect(() => {
@@ -292,10 +357,14 @@ export default function App({ initialBooks = [], initialVisits = 0 }: AppProps) 
 
   const filteredBooks = useMemo(() => {
     const filtered = books.filter(book => {
+      const lowerSearch = searchTerm.toLowerCase();
+      
+      // Bilingual search matching
       const matchesSearch = !searchTerm || 
-        book.title.toLowerCase().includes(searchTerm.toLowerCase()) || 
-        book.author.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        book.category.toLowerCase().includes(searchTerm.toLowerCase());
+        book.title.toLowerCase().includes(lowerSearch) || 
+        book.author.toLowerCase().includes(lowerSearch) ||
+        book.category.toLowerCase().includes(lowerSearch) ||
+        (book.description && book.description.toLowerCase().includes(lowerSearch));
       
       const matchesYear = selectedYear === 'All' || book.year === selectedYear;
       const matchesCategory = selectedCategory === 'All' || book.category === selectedCategory;
@@ -390,7 +459,7 @@ export default function App({ initialBooks = [], initialVisits = 0 }: AppProps) 
       <header className="sticky top-0 z-40 bg-white/80 backdrop-blur-md border-b border-slate-200">
         <div className="max-w-7xl mx-auto px-4 h-20 flex items-center justify-between">
           <button 
-            onClick={() => navigate('library')}
+            onClick={() => navigate('home')}
             className="flex items-center gap-3 text-navy font-bold text-2xl tracking-tight hover:opacity-80 transition-opacity"
           >
             <div className="w-10 h-10 bg-navy text-white rounded-xl flex items-center justify-center shadow-lg shadow-slate-200">
@@ -400,6 +469,9 @@ export default function App({ initialBooks = [], initialVisits = 0 }: AppProps) 
               <span className="text-lg">Myanmar Legal</span>
               <div className="flex items-center gap-2">
                 <span className="text-xs font-medium text-slate-400 uppercase tracking-widest">Library</span>
+                <span className="hidden lg:block text-[10px] font-bold text-navy/40 font-myanmar uppercase tracking-tighter">
+                  မြန်မာဥပဒေ စာအုပ်များ
+                </span>
                 {!loading && books.length > 0 && (
                   <span className="px-1.5 py-0.5 bg-navy text-white text-[10px] font-bold rounded-md shadow-sm">
                     {books.length} Books
@@ -411,11 +483,11 @@ export default function App({ initialBooks = [], initialVisits = 0 }: AppProps) 
           
           <nav className="hidden md:flex items-center gap-8 text-sm font-semibold">
             {[
-              { id: 'library', label: 'Home' },
+              { id: 'home', label: 'Home' },
+              { id: 'library', label: 'Library' },
               { id: 'legal-rulings', label: 'Rulings' },
               { id: 'text-dictionary', label: 'Dictionary' },
-              { id: 'latest', label: 'Latest' },
-              { id: 'about', label: 'About' }
+              { id: 'latest', label: 'Latest' }
             ].map((item) => (
               <button 
                 key={item.id}
@@ -471,99 +543,58 @@ export default function App({ initialBooks = [], initialVisits = 0 }: AppProps) 
 
       {/* Main Content Area */}
       <AnimatePresence mode="wait">
-        {currentView === 'library' ? (
+        {currentView === 'home' ? (
+          <motion.div
+            key="home"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+          >
+            <LandingPage onNavigate={navigate} visitCount={visitCount} />
+          </motion.div>
+        ) : currentView === 'book-detail' && selectedBookId && books.find(b => b.id === selectedBookId) ? (
+          <motion.div
+            key="book-detail"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+          >
+            <BookDetail 
+              book={books.find(b => b.id === selectedBookId)!} 
+              onBack={() => navigate('library')}
+              onOpenReader={openReader}
+              readingStatus={readingStatus}
+              onToggleRead={(id) => {
+                setReadingStatus(prev => ({
+                  ...prev,
+                  [id]: { ...prev[id], read: !prev[id]?.read }
+                }));
+              }}
+              bilingualCategory={CATEGORIES_BILINGUAL[books.find(b => b.id === selectedBookId)!.category]}
+            />
+          </motion.div>
+        ) : currentView === 'category-landing' && landingCategory ? (
+          <CategoryLandingPage 
+            category={landingCategory}
+            myanmarTitle={CATEGORIES_BILINGUAL[landingCategory]?.my || ''}
+            description={
+              landingCategory === 'Penal Code' ? 'Explore digitized copies of the Myanmar Penal Code and foundational enactments. Essential for legal research.' :
+              landingCategory === 'Civil Law' ? 'A complete repository of Myanmar civil laws, procedures, and legal foundation codes.' :
+              'Specialized legal document collection and archival repository.'
+            }
+            books={books}
+            onBack={() => navigate('library')}
+            onRead={openReader}
+            onNavigateToBook={(id) => navigate('book-detail', id)}
+          />
+        ) : currentView === 'library' ? (
           <motion.div
             key="library"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
           >
-            {/* Hero / Featured Section */}
-            <AnimatePresence>
-              {!loading && featuredBooks.length > 0 && selectedCategory === 'All' && searchTerm === '' && (
-                <motion.section 
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  className="max-w-7xl mx-auto px-4 pt-8"
-                >
-                  <div className="relative overflow-hidden rounded-[2.5rem] bg-navy text-white p-8 md:p-16">
-                    <div className="absolute top-0 right-0 w-1/2 h-full opacity-10 pointer-events-none">
-                      <Scale className="w-full h-full -rotate-12 translate-x-1/4" />
-                    </div>
-                    <div className="relative z-10 max-w-2xl">
-                      <div className="inline-flex items-center gap-2 px-3 py-1 bg-white/10 backdrop-blur-md rounded-full text-[10px] font-bold uppercase tracking-widest mb-6 border border-white/20">
-                        <Sparkles className="w-3 h-3 text-slate-300" />
-                        Featured Resource
-                      </div>
-                      <h2 className="text-4xl md:text-6xl font-bold mb-6 leading-[1.1] tracking-tight">
-                        {featuredBooks[0].title}
-                      </h2>
-                      <p className="text-slate-200 text-lg mb-10 leading-relaxed opacity-80">
-                        {featuredBooks[0].description || "Explore the foundational principles of Myanmar's legal system with this comprehensive guide."}
-                      </p>
-                      <div className="flex flex-wrap gap-4">
-                        <button 
-                          onClick={() => openReader(featuredBooks[0].read, featuredBooks[0].title)}
-                          className="px-8 py-4 bg-white text-navy rounded-2xl font-bold hover:bg-slate-50 transition-all shadow-xl shadow-navy/20 flex items-center gap-2 active:scale-95"
-                        >
-                          <BookOpen className="w-5 h-5" />
-                          Read Now
-                        </button>
-                        <a 
-                          href={featuredBooks[0].file}
-                          target="_blank"
-                          className="px-8 py-4 bg-white/10 backdrop-blur-md text-white rounded-2xl font-bold hover:bg-white/20 transition-all border border-white/20 flex items-center gap-2 active:scale-95"
-                        >
-                          <Download className="w-5 h-5" />
-                          Download PDF
-                        </a>
-                      </div>
-                    </div>
-                  </div>
-                </motion.section>
-              )}
-            </AnimatePresence>
-
-            {/* Centralized Search Section */}
-            <section className="max-w-4xl mx-auto px-4 pt-12 pb-8">
-              <div className="text-center mb-10">
-                <h2 className="text-2xl md:text-4xl font-bold text-slate-900 mb-4 tracking-tight">Search the Library</h2>
-                <p className="text-slate-500">Find laws, procedures, and legal documentation in seconds.</p>
-              </div>
-              
-              <div className="relative group">
-                <div className="absolute -inset-1 bg-gradient-to-r from-navy to-slate-gray rounded-[2rem] blur opacity-25 group-focus-within:opacity-50 transition duration-1000 group-focus-within:duration-200"></div>
-                <div className="relative flex flex-col md:flex-row gap-4 bg-white p-3 rounded-[1.8rem] shadow-2xl border border-slate-100">
-                  <div className="relative flex-1">
-                    <Search className="absolute left-5 top-1/2 -translate-y-1/2 w-6 h-6 text-slate-300 group-focus-within:text-navy transition-colors" />
-                    <input 
-                      type="text"
-                      placeholder="Search by title, author, or keyword..."
-                      value={searchTerm}
-                      onChange={(e) => setSearchTerm(e.target.value)}
-                      className="w-full pl-14 pr-6 py-5 bg-slate-50 border-none rounded-2xl text-lg focus:ring-0 outline-none transition-all placeholder:text-slate-300 font-medium"
-                    />
-                  </div>
-                  <div className="flex gap-3">
-                    <select 
-                      value={selectedYear}
-                      onChange={(e) => setSelectedYear(e.target.value)}
-                      className="px-6 py-5 bg-slate-50 border-none rounded-2xl text-sm font-bold text-slate-600 focus:ring-0 outline-none cursor-pointer hover:bg-slate-100 transition-colors"
-                    >
-                      {years.map(y => <option key={y} value={y}>{y === 'All' ? 'All Years' : y}</option>)}
-                    </select>
-                    <button 
-                      onClick={() => setIsAlphabetModalOpen(true)}
-                      className="px-8 py-5 bg-slate-50 text-slate-600 rounded-2xl font-bold hover:bg-slate-100 transition-all flex items-center gap-2 whitespace-nowrap border border-transparent focus:border-navy/20"
-                    >
-                      <Filter className="w-5 h-5 text-slate-400" />
-                      <span>{selectedLetter === 'All' ? 'A-Z' : `Letter: ${selectedLetter}`}</span>
-                    </button>
-                  </div>
-                </div>
-              </div>
-            </section>
-
+            {/* Header section was here */}
             <div className="max-w-7xl mx-auto px-4 py-8 flex flex-col md:flex-row gap-8">
               {/* Sidebar Backdrop */}
               <AnimatePresence>
@@ -583,118 +614,162 @@ export default function App({ initialBooks = [], initialVisits = 0 }: AppProps) 
                 fixed inset-y-0 left-0 z-50 w-72 bg-white border-r border-slate-200 p-6 transform transition-transform duration-300 overflow-y-auto custom-scrollbar md:relative md:translate-x-0 md:bg-transparent md:border-none md:p-0 md:z-0
                 ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'}
               `}>
-                <div className="flex items-center justify-between mb-6 md:hidden">
-                  <h3 className="font-bold text-lg text-navy">Menu</h3>
-                  <button onClick={() => setIsSidebarOpen(false)} className="p-2 hover:bg-slate-100 rounded-lg transition-colors">
-                    <X className="w-6 h-6 text-slate-400" />
-                  </button>
-                </div>
-
-                {/* Mobile Quick Navigation */}
-                <div className="md:hidden mb-8 space-y-3">
-                  {[
-                    { id: 'latest', label: 'Latest Updates', sub: 'New Arrivals', icon: Bell },
-                    { id: 'legal-rulings', label: 'Legal Rulings', sub: 'Court Decisions', icon: Scale },
-                    { id: 'text-dictionary', label: 'Law Dictionary', sub: 'English-Myanmar', icon: Book },
-                    { id: 'about', label: 'About Library', sub: 'Our Mission', icon: Users },
-                    { id: 'request', label: 'Request Book', sub: 'Submit Idea', icon: BookPlus }
-                  ].map((item) => (
-                    <button
-                      key={item.id}
-                      onClick={() => {
-                        if (item.id === 'request') {
-                          setIsRequestModalOpen(true);
-                        } else {
-                          navigate(item.id as any);
-                        }
-                        setIsSidebarOpen(false);
-                      }}
-                      className={`w-full flex items-center gap-4 px-5 py-4 rounded-2xl font-bold transition-all active:scale-[0.98] ${
-                        currentView === item.id 
-                          ? 'bg-navy text-white shadow-xl shadow-navy/20' 
-                          : 'bg-white border border-slate-200 text-slate-600'
-                      }`}
-                    >
-                      <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${
-                        currentView === item.id ? 'bg-white/10' : 'bg-slate-50'
-                      }`}>
-                        <item.icon className={`w-5 h-5 ${currentView === item.id ? 'text-white' : 'text-slate-400'}`} />
-                      </div>
-                      <div className="flex flex-col items-start text-left">
-                        <span className="text-sm">{item.label}</span>
-                        <span className={`text-[10px] font-medium uppercase tracking-widest ${
-                          currentView === item.id ? 'opacity-60' : 'text-slate-400'
-                        }`}>{item.sub}</span>
-                      </div>
-                    </button>
-                  ))}
-                </div>
-
-                <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-                  <div className="p-4 border-b border-slate-100 bg-slate-50/50">
-                    <h3 className="font-semibold text-slate-800">Legal Categories</h3>
+                <div className="mb-8 px-4">
+                  <div className="text-xl font-black text-navy tracking-tight leading-none">MLL</div>
+                  <div className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em] mt-1 font-myanmar leading-tight">
+                    မြန်မာဥပဒေ စာအုပ်များ
                   </div>
-                  <div className="p-2 space-y-1">
-                    {Object.entries(categoryGroups).map(([group, groupCats]) => (
-                      <div key={group} className="space-y-1">
-                        <button 
-                          onClick={() => toggleGroup(group)}
-                          className="w-full flex items-center justify-between px-4 py-3 rounded-xl text-xs font-bold text-slate-400 uppercase tracking-widest hover:bg-slate-50 transition-colors"
-                        >
-                          {group}
-                          <ChevronRight className={`w-3 h-3 transition-transform duration-300 ${expandedGroups.includes(group) ? 'rotate-90' : ''}`} />
-                        </button>
-                        <AnimatePresence initial={false}>
-                          {expandedGroups.includes(group) && (
-                            <motion.ul 
-                              initial={{ height: 0, opacity: 0 }}
-                              animate={{ height: 'auto', opacity: 1 }}
-                              exit={{ height: 0, opacity: 0 }}
-                              className="overflow-hidden space-y-1"
-                            >
-                              {groupCats.map(cat => {
-                                const Icon = CATEGORY_ICONS[cat] || CATEGORY_ICONS['Default'];
-                                return (
-                                  <li key={cat}>
-                                    <button
-                                      onClick={() => {
-                                        setSelectedCategory(cat);
-                                        setIsSidebarOpen(false);
-                                      }}
-                                      className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium transition-all ${
-                                        selectedCategory === cat 
-                                          ? 'bg-navy/5 text-navy shadow-sm' 
-                                          : 'text-slate-600 hover:bg-slate-50'
-                                      }`}
-                                    >
-                                      <Icon className={`w-4 h-4 ${selectedCategory === cat ? 'text-navy' : 'text-slate-400'}`} />
-                                      {cat}
-                                    </button>
-                                  </li>
-                                );
-                              })}
-                            </motion.ul>
-                          )}
-                        </AnimatePresence>
-                      </div>
+                </div>
+
+                <div className="space-y-4">
+                  {/* Primary Navigation */}
+                  <div className="space-y-1">
+                    {[
+                      { id: 'home', label: 'Home', icon: Globe },
+                      { id: 'library', label: 'Library', icon: Book },
+                      { id: 'legal-rulings', label: 'Rulings', icon: Scale },
+                      { id: 'text-dictionary', label: 'Dictionary', icon: Globe },
+                      { id: 'latest', label: 'Latest', icon: Sparkles },
+                    ].map((item) => (
+                      <button 
+                        key={item.id}
+                        onClick={() => navigate(item.id as any)}
+                        className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold transition-all ${
+                          currentView === item.id 
+                            ? 'bg-navy text-white shadow-lg shadow-navy/20' 
+                            : 'text-slate-500 hover:bg-slate-50 hover:text-navy'
+                        }`}
+                      >
+                        <item.icon className="w-5 h-5" />
+                        {item.label}
+                      </button>
                     ))}
+                  </div>
+
+                  {/* Categories */}
+                  <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+                    <div className="p-4 border-b border-slate-100 bg-slate-50/50">
+                      <h3 className="font-semibold text-slate-800">Categories</h3>
+                    </div>
+                    <div className="p-2 space-y-1">
+                      {Object.entries(categoryGroups).map(([group, groupCats]) => (
+                        <div key={group} className="space-y-1">
+                          <button 
+                            onClick={() => toggleGroup(group)}
+                            className="w-full flex items-center justify-between px-4 py-3 rounded-xl text-xs font-bold text-slate-400 uppercase tracking-widest hover:bg-slate-50 transition-colors"
+                          >
+                            {group}
+                            <ChevronRight className={`w-3 h-3 transition-transform duration-300 ${expandedGroups.includes(group) ? 'rotate-90' : ''}`} />
+                          </button>
+                          <AnimatePresence initial={false}>
+                            {expandedGroups.includes(group) && (
+                              <motion.ul 
+                                initial={{ height: 0, opacity: 0 }}
+                                animate={{ height: 'auto', opacity: 1 }}
+                                exit={{ height: 0, opacity: 0 }}
+                                className="overflow-hidden space-y-1"
+                              >
+                                {groupCats.map(cat => {
+                                  const Icon = CATEGORY_ICONS[cat] || CATEGORY_ICONS['Default'];
+                                  const bilingual = CATEGORIES_BILINGUAL[cat];
+                                  return (
+                                    <li key={cat}>
+                                      <button
+                                        onClick={() => {
+                                          setSelectedCategory(cat);
+                                          setIsSidebarOpen(false);
+                                          if (currentView !== 'library') navigate('library');
+                                        }}
+                                        className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium transition-all ${
+                                          selectedCategory === cat 
+                                            ? 'bg-navy/5 text-navy shadow-sm' 
+                                            : 'text-slate-600 hover:bg-slate-50'
+                                        }`}
+                                      >
+                                        <Icon className={`w-4 h-4 ${selectedCategory === cat ? 'text-navy' : 'text-slate-400'}`} />
+                                        <div className="flex flex-col items-start leading-tight">
+                                          <span>{cat}</span>
+                                          {bilingual && <span className="text-[9px] opacity-70 font-myanmar">{bilingual.my}</span>}
+                                        </div>
+                                      </button>
+                                    </li>
+                                  );
+                                })}
+                              </motion.ul>
+                            )}
+                          </AnimatePresence>
+                        </div>
+                      ))}
+                    </div>
                   </div>
                 </div>
               </aside>
 
               {/* Main Content */}
               <main className="flex-1 min-w-0">
+                {/* Featured Section in Library */}
+                <AnimatePresence>
+                  {!loading && featuredBooks.length > 0 && selectedCategory === 'All' && searchTerm === '' && (
+                    <motion.section 
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      className="mb-12"
+                    >
+                      <div className="relative overflow-hidden rounded-[2.5rem] bg-navy text-white p-8 md:p-12">
+                        <div className="absolute top-0 right-0 w-1/2 h-full opacity-10 pointer-events-none">
+                          <Scale className="w-full h-full -rotate-12 translate-x-1/4" />
+                        </div>
+                        <div className="relative z-10 max-w-xl">
+                          <div className="inline-flex items-center gap-2 px-3 py-1 bg-white/10 backdrop-blur-md rounded-full text-[10px] font-bold uppercase tracking-widest mb-4 border border-white/20">
+                            <Sparkles className="w-3 h-3 text-slate-300" />
+                            Featured
+                          </div>
+                          <h2 className="text-3xl md:text-5xl font-bold mb-4 leading-tight tracking-tight">
+                            {featuredBooks[0].title}
+                          </h2>
+                          <div className="flex flex-wrap gap-4 mt-8">
+                            <button 
+                              onClick={() => openReader(featuredBooks[0].read, featuredBooks[0].title)}
+                              className="px-6 py-3 bg-white text-navy rounded-xl font-bold hover:bg-slate-50 transition-all flex items-center gap-2"
+                            >
+                              <BookOpen className="w-4 h-4" />
+                              Read Now
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    </motion.section>
+                  )}
+                </AnimatePresence>
+
                 <div className="mb-8 flex items-center justify-between">
-                  <div className="flex items-center gap-2 text-xs text-slate-400">
-                    <span>Home</span>
-                    <ChevronRight className="w-3 h-3" />
-                    <span className="text-slate-600 font-medium">{selectedCategory === 'All' ? 'All Books' : selectedCategory}</span>
+                  <div>
+                    <h1 className="text-3xl font-black text-slate-900 tracking-tight">Myanmar Legal Library</h1>
+                    <div className="flex items-center gap-2 text-xs text-slate-400 mt-1">
+                      <span>Home</span>
+                      <ChevronRight className="w-3 h-3" />
+                      <span className="text-slate-600 font-medium">{selectedCategory === 'All' ? 'All Books' : selectedCategory}</span>
+                    </div>
                   </div>
                   {!loading && (
                     <span className="text-[10px] font-bold px-3 py-1 bg-slate-100 text-slate-500 rounded-full uppercase tracking-widest">
                       {filteredBooks.length} Results
                     </span>
                   )}
+                </div>
+
+                {/* Library Search */}
+                <div className="mb-8">
+                  <div className="relative flex-1 group">
+                    <Search className="absolute left-5 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-300 group-focus-within:text-navy transition-colors" />
+                    <input 
+                      type="text"
+                      placeholder="Search legal books, codes, and documents..."
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                      className="w-full pl-14 pr-6 py-5 bg-white border border-slate-200 rounded-[1.5rem] focus:ring-0 focus:border-navy outline-none transition-all shadow-sm text-lg"
+                    />
+                  </div>
                 </div>
 
                 {/* Book Grid */}
@@ -707,7 +782,7 @@ export default function App({ initialBooks = [], initialVisits = 0 }: AppProps) 
                           initial={{ opacity: 0, scale: 0.95 }}
                           animate={{ opacity: 1, scale: 1 }}
                           key={book.id}
-                          onClick={() => setTouchedBookId(touchedBookId === book.id ? null : book.id)}
+                          onClick={() => navigate('book-detail', book.id)}
                           className="group flex flex-col bg-white rounded-[2rem] border border-slate-100 overflow-hidden shadow-sm hover:shadow-2xl hover:-translate-y-2 transition-all duration-500 cursor-pointer h-full"
                         >
                           <div className="relative aspect-[3/4] overflow-hidden bg-slate-50">
@@ -734,20 +809,21 @@ export default function App({ initialBooks = [], initialVisits = 0 }: AppProps) 
                               <button 
                                 onClick={(e) => {
                                   e.stopPropagation();
-                                  openReader(book.read, book.title);
+                                  navigate('book-detail', book.id);
+                                }}
+                                className="w-14 h-14 bg-white text-navy rounded-2xl flex items-center justify-center hover:bg-navy hover:text-white transition-all shadow-2xl active:scale-90"
+                              >
+                                <Info className="w-6 h-6" />
+                              </button>
+                              <button 
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  openReader(book.read, book.title, book.id);
                                 }}
                                 className="w-14 h-14 bg-white text-navy rounded-2xl flex items-center justify-center hover:bg-navy hover:text-white transition-all shadow-2xl active:scale-90"
                               >
                                 <BookOpen className="w-6 h-6" />
                               </button>
-                              <a 
-                                href={book.file}
-                                target="_blank"
-                                onClick={(e) => e.stopPropagation()}
-                                className="w-14 h-14 bg-white text-slate-600 rounded-2xl flex items-center justify-center hover:bg-muted-green hover:text-white transition-all shadow-2xl active:scale-90"
-                              >
-                                <Download className="w-6 h-6" />
-                              </a>
                             </div>
                           </div>
 
@@ -755,6 +831,9 @@ export default function App({ initialBooks = [], initialVisits = 0 }: AppProps) 
                             <div className="flex items-center gap-2 mb-3">
                               <span className="px-2.5 py-1 bg-slate-50 text-slate-400 text-[9px] font-bold uppercase tracking-widest rounded-md border border-slate-100">
                                 {book.category}
+                                {CATEGORIES_BILINGUAL[book.category] && (
+                                  <span className="ml-1 opacity-60 font-myanmar">({CATEGORIES_BILINGUAL[book.category].my})</span>
+                                )}
                               </span>
                               <span className="text-[9px] font-bold text-navy/40 uppercase tracking-widest">{book.year}</span>
                             </div>

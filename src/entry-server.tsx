@@ -5,7 +5,11 @@ import App from './App';
 export async function render(url: string, initialData?: any) {
   const html = renderToString(
     <React.StrictMode>
-      <App initialBooks={initialData?.books} initialVisits={initialData?.visits} />
+      <App 
+        initialBooks={initialData?.books} 
+        initialVisits={initialData?.visits} 
+        initialPath={url}
+      />
     </React.StrictMode>
   );
   return { html };

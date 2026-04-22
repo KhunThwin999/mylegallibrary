@@ -185,6 +185,100 @@ async function startServer() {
       html = html.replace(`<script id="__INITIAL_DATA__" type="application/json"></script>`, 
                           `<script id="__INITIAL_DATA__" type="application/json">${JSON.stringify(initialData)}</script>`);
 
+      // Dynamic Meta Injection for SEO
+      let seoTitle = 'Myanmar Legal Library | Free Myanmar Law Books & Resources (မြန်မာဥပဒေစာကြည့်တိုက်)';
+      let seoDesc = 'Myanmar Legal Library: Access a comprehensive collection of Myanmar law books, Constitution of Myanmar, Burma civil & criminal codes, and Supreme Court rulings. Free digital repository for legal practitioners and students.';
+      let seoImage = 'https://myanmarlegallibrary.com/og-image.png';
+      
+      if (url === '/books' || url === '/library') {
+        seoTitle = 'Legal Library: Browse Myanmar Law Books & Statutes (စာအုပ်စင်)';
+        seoDesc = 'Explore hundreds of Myanmar legal books, foundation codes, and specialized law regulations. Download PDF versions of the Myanmar Penal Code, Civil Law, and Land Law resources.';
+      } else if (url.startsWith('/book/')) {
+        const bookId = url.split('/book/')[1];
+        const book = initialBooks.find((b: any) => b.id === bookId);
+        if (book) {
+          seoTitle = `${book.title} | Myanmar Legal Book Detail`;
+          seoDesc = book.description || `Read and download ${book.title} by ${book.author} (${book.year}). A key resource for Myanmar legal research in ${book.category}.`;
+          seoImage = book.cover;
+        }
+      } else if (url === '/dictionary') {
+        seoTitle = 'English-Myanmar Legal Dictionary | Law Terms & Definitions';
+        seoDesc = 'Search and translate Myanmar legal terms with our comprehensive English-Myanmar law dictionary. Essential tool for legal translation and academic research.';
+      } else if (url === '/latest') {
+        seoTitle = 'Latest Legal Updates & New Laws | Myanmar Legal Library';
+        seoDesc = 'Stay informed with the newest Myanmar laws, statutory amendments, and legal book arrivals. Monthly updates on Burma\'s evolving legal landscape.';
+      } else if (url === '/about') {
+        seoTitle = 'About Us: The Myanmar Legal Library Project';
+        seoDesc = 'Learn about our mission to provide universal access to Myanmar law and legal information through a centralized digital repository.';
+      } else if (url === '/rulings') {
+        seoTitle = 'Myanmar Court Rulings & Supreme Court Decisions (တရားစီရင်ထုံးများ)';
+        seoDesc = 'Access a database of high court and supreme court rulings in Myanmar. Search court decisions by year and legal category for precedent analysis.';
+      } else if (url === '/penal-code') {
+        seoTitle = 'Myanmar Penal Code (ရာဇသတ်ကြီး ဥပဒေ) - Myanmar Legal Library';
+        seoDesc = 'Access the full Myanmar Penal Code and related criminal law enactments. Read and download digitized legal resources for free. မြန်မာနိုင်ငံ ရာဇသတ်ကြီး ဥပဒေ စာအုပ်များ။';
+      } else if (url === '/civil-law') {
+        seoTitle = 'Civil Law of Myanmar (တရားမ ဥပဒေ) - Myanmar Legal Library';
+        seoDesc = 'Explore comprehensive digitized resources on Myanmar Civil Law, including civil codes and legal procedures. မြန်မာနိုင်ငံ တရားမ ဥပဒေ စာအုပ်များ။';
+      }
+
+      const baseUrl = `${req.protocol}://${req.get('host')}`;
+      const fullUrl = `${baseUrl}${url}`;
+
+      html = html.replace(/<title>.*?<\/title>/, `<title>${seoTitle}</title>`);
+      html = html.replace(/<meta name="description" content=".*?"\s*\/?>/, `<meta name="description" content="${seoDesc}">`);
+      html = html.replace(/<meta property="og:title" content=".*?"\s*\/?>/, `<meta property="og:title" content="${seoTitle}">`);
+      html = html.replace(/<meta property="og:description" content=".*?"\s*\/?>/, `<meta property="og:description" content="${seoDesc}">`);
+      html = html.replace(/<meta property="og:image" content=".*?"\s*\/?>/, `<meta property="og:image" content="${seoImage}">`);
+      html = html.replace(/<meta property="og:url" content=".*?"\s*\/?>/, `<meta property="og:url" content="${fullUrl}">`);
+
+      // Schema.org Structured Data
+      let schemaData: any = {
+        "@context": "https://schema.org",
+        "@type": "WebSite",
+        "name": "Myanmar Legal Library",
+        "url": baseUrl,
+        "description": "Comprehensive digital repository for Myanmar legal documentation."
+      };
+
+      if (url.startsWith('/book/')) {
+        const bookId = url.split('/book/')[1];
+        const book = initialBooks.find((b: any) => b.id === bookId);
+        if (book) {
+          schemaData = {
+            "@context": "https://schema.org",
+            "@type": "Book",
+            "name": book.title,
+            "author": {
+              "@type": "Person",
+              "name": book.author || "Supreme Court of Myanmar"
+            },
+            "datePublished": book.year,
+            "image": book.cover,
+            "description": book.description || seoDesc,
+            "genre": book.category,
+            "publisher": {
+              "@type": "Organization",
+              "name": "Myanmar Legal Library"
+            }
+          };
+        }
+      } else if (url === '/books' || url === '/library') {
+        schemaData = {
+          "@context": "https://schema.org",
+          "@type": "Library",
+          "name": "Myanmar Legal Library - Digital Collection",
+          "url": `${baseUrl}${url}`,
+          "description": seoDesc,
+          "provider": {
+            "@type": "Organization",
+            "name": "Myanmar Legal Library"
+          }
+        };
+      }
+
+      const schemaScript = `<script type="application/ld+json">${JSON.stringify(schemaData)}</script>`;
+      html = html.replace(`</head>`, `${schemaScript}</head>`);
+
       res.status(200).set({ 'Content-Type': 'text/html' }).end(html);
     } catch (e: any) {
       if (process.env.NODE_ENV !== 'production' && vite) {
