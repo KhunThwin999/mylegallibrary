@@ -1153,40 +1153,40 @@ export default function App({ initialBooks = [], initialVisits = 0, initialPath 
                   </button>
                   <button 
                     onClick={() => navigate('library')}
-                    className="hover:text-navy transition-colors"
+                    className="font-black text-navy tracking-tight text-xl transition-colors hover:opacity-80"
                   >
                     Myanmar Legal Library
                   </button>
                 </div>
-                <p className="text-slate-500 leading-relaxed text-sm">
+                <p className="text-slate-600 leading-relaxed text-sm font-medium">
                   Your digital gateway to Myanmar's legal knowledge. Empowering citizens and professionals with accessible legal resources.
                 </p>
               </div>
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-8">
                 <div>
-                  <h4 className="font-bold text-slate-900 mb-4 text-sm uppercase tracking-wider">Resources</h4>
-                  <ul className="space-y-2 text-sm text-slate-500">
+                  <h4 className="font-black text-slate-900 mb-6 text-xs uppercase tracking-[0.2em]">Resources</h4>
+                  <ul className="space-y-3 text-sm text-slate-600 font-bold">
                     <li><a href="#" className="hover:text-navy transition-colors">Constitution</a></li>
                     <li><a href="#" className="hover:text-navy transition-colors">Civil Law</a></li>
                     <li><a href="#" className="hover:text-navy transition-colors">Criminal Law</a></li>
                   </ul>
                 </div>
                 <div>
-                  <h4 className="font-bold text-slate-900 mb-4 text-sm uppercase tracking-wider">Library</h4>
-                  <ul className="space-y-2 text-sm text-slate-500">
+                  <h4 className="font-black text-slate-900 mb-6 text-xs uppercase tracking-[0.2em]">Library</h4>
+                  <ul className="space-y-3 text-sm text-slate-600 font-bold">
                     <li><button onClick={() => navigate('latest')} className="hover:text-navy transition-colors">Latest Updates</button></li>
-                    <li><button onClick={() => navigate('text-dictionary')} className="hover:text-navy transition-colors">English - Myanmar Law Dictionary</button></li>
+                    <li><button onClick={() => navigate('text-dictionary')} className="hover:text-navy transition-colors text-left">English - Myanmar Law Dictionary</button></li>
                     <li><button onClick={() => navigate('about')} className="hover:text-navy transition-colors">About Us</button></li>
                     <li><a href="#" className="hover:text-navy transition-colors">Contact</a></li>
                     <li><button onClick={() => navigate('privacy')} className="hover:text-navy transition-colors">Privacy Policy</button></li>
                   </ul>
                 </div>
                 <div>
-                  <h4 className="font-bold text-slate-900 mb-4 text-sm uppercase tracking-wider">Support</h4>
-                  <div className="space-y-3">
-                    <div className="flex flex-col gap-2">
-                      <a href={`mailto:${supportEmail}`} className="text-sm text-navy font-medium hover:underline flex items-center gap-2">
-                        <Mail className="w-4 h-4" />
+                  <h4 className="font-black text-slate-900 mb-6 text-xs uppercase tracking-[0.2em]">Support</h4>
+                  <div className="space-y-4">
+                    <div className="flex flex-col gap-3">
+                      <a href={`mailto:${supportEmail}`} className="text-sm text-navy font-bold hover:underline flex items-center gap-2">
+                        <Mail className="w-5 h-5" />
                         {supportEmail}
                       </a>
                       <button 
