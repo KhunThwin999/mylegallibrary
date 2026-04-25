@@ -31,26 +31,25 @@ export default function LatestUpdates({ books, onBack, onRead }: LatestUpdatesPr
       exit={{ opacity: 0, y: -20 }}
       className="max-w-4xl mx-auto px-4 py-12"
     >
-      <div className="flex items-center justify-between mb-12">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-12">
         <div>
-          <h1 className="text-4xl font-bold text-navy tracking-tight mb-2 flex items-center gap-3">
-            <Bell className="w-8 h-8 text-navy animate-bounce" />
+          <h1 className="text-3xl md:text-4xl font-bold text-navy tracking-tight mb-2 flex items-center gap-3">
+            <Bell className="w-7 h-7 md:w-8 md:h-8 text-navy shrink-0" />
             Latest Updates
           </h1>
-          <p className="text-slate-500 max-w-lg">
+          <p className="text-slate-500 max-w-lg text-sm md:text-base leading-relaxed">
             Stay informed with the newest additions to our <span className="text-navy font-semibold">Myanmar legal collection</span>. 
-            We regularly update our library with the latest <span className="text-navy font-semibold">Burma laws</span>, court rulings, and legal textbooks.
           </p>
         </div>
         <button 
           onClick={onBack}
-          className="px-6 py-2 bg-slate-100 text-slate-600 rounded-xl font-bold hover:bg-slate-200 transition-all"
+          className="w-full md:w-auto px-6 py-3 bg-slate-100 text-slate-600 rounded-xl font-bold hover:bg-slate-200 transition-all text-sm active:scale-95"
         >
           Back to Library
         </button>
       </div>
 
-      <div className="space-y-6">
+      <div className="space-y-4 md:space-y-6">
         {latestBooks.length > 0 ? (
           latestBooks.map((book, index) => (
             <motion.div
@@ -58,51 +57,51 @@ export default function LatestUpdates({ books, onBack, onRead }: LatestUpdatesPr
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: index * 0.1 }}
-              className="group relative bg-white rounded-3xl border border-slate-200 p-6 shadow-sm hover:shadow-xl hover:border-navy/20 transition-all flex flex-col md:flex-row gap-6 items-start"
+              className="group relative bg-white rounded-2xl md:rounded-3xl border border-slate-200 p-4 md:p-6 shadow-sm hover:shadow-xl hover:border-navy/20 transition-all flex gap-4 md:gap-6 items-start"
             >
-              {/* Notification Badge */}
-              <div className="absolute -top-3 -left-3 w-12 h-12 bg-navy text-white rounded-2xl flex items-center justify-center shadow-lg shadow-navy/20 z-10">
-                {index === 0 ? <Sparkles className="w-6 h-6" /> : <Clock className="w-6 h-6" />}
+              {/* Notification Badge - Smaller on Mobile */}
+              <div className="absolute -top-2 -left-2 w-8 h-8 md:w-12 md:h-12 bg-navy text-white rounded-lg md:rounded-2xl flex items-center justify-center shadow-lg shadow-navy/20 z-10">
+                {index === 0 ? <Sparkles className="w-4 h-4 md:w-6 md:h-6" /> : <Clock className="w-4 h-4 md:w-6 md:h-6" />}
               </div>
 
-              {/* Book Cover Preview */}
-              <div className="w-full md:w-32 aspect-[2/3] rounded-xl overflow-hidden bg-slate-100 flex-shrink-0 shadow-md">
+              {/* Book Cover Preview - Responsive Size */}
+              <div className="w-20 md:w-32 aspect-[2/3] rounded-lg md:rounded-xl overflow-hidden bg-slate-100 flex-shrink-0 shadow-md">
                 <img 
                   src={book.cover} 
                   alt={book.title} 
-                  className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                  className="w-full h-full object-cover transition-transform duration-500"
                   referrerPolicy="no-referrer"
                 />
               </div>
 
               {/* Content */}
-              <div className="flex-1">
-                <div className="flex items-center gap-3 mb-3">
-                  <span className="px-2.5 py-1 bg-slate-50 text-slate-400 text-[9px] font-bold uppercase tracking-widest rounded-md border border-slate-100">
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-3 mb-2 md:mb-3">
+                  <span className="px-1.5 py-0.5 md:px-2.5 md:py-1 bg-slate-50 text-slate-400 text-[8px] md:text-[9px] font-bold uppercase tracking-widest rounded-md border border-slate-100">
                     {book.category}
                   </span>
-                  <span className="flex items-center gap-1 text-[9px] font-bold text-navy/40 uppercase tracking-widest">
+                  <span className="flex items-center gap-1 text-[8px] md:text-[9px] font-bold text-navy/40 uppercase tracking-widest">
                     <Calendar className="w-3 h-3" />
                     {book.year}
                   </span>
                 </div>
                 
-                <h3 className="text-xl font-bold text-slate-900 mb-2 group-hover:text-navy transition-colors leading-tight">
+                <h3 className="text-base md:text-xl font-bold text-slate-900 mb-1 md:mb-2 group-hover:text-navy transition-colors leading-tight line-clamp-2">
                   {book.title}
                 </h3>
                 
-                <p className="text-slate-500 text-sm mb-6 line-clamp-2 leading-relaxed font-medium">
-                  {book.description || `A new addition to the ${book.category} section. Explore the latest legal insights and documentation.`}
+                <p className="hidden xs:block text-slate-500 text-xs md:text-sm mb-4 md:mb-6 line-clamp-1 md:line-clamp-2 leading-relaxed font-medium">
+                  {book.description || `A new addition to the ${book.category} section.`}
                 </p>
 
-                <div className="flex items-center justify-between pt-4 border-t border-slate-50">
-                  <span className="text-xs text-slate-400 font-medium">By {book.author}</span>
+                <div className="flex items-center justify-between pt-3 md:pt-4 border-t border-slate-50">
+                  <span className="text-[10px] md:text-xs text-slate-400 font-medium truncate max-w-[100px] md:max-w-none">By {book.author}</span>
                   <button 
                     onClick={() => onRead(book.read, book.title)}
-                    className="flex items-center gap-1.5 text-navy font-bold text-sm hover:gap-2 transition-all"
+                    className="flex items-center gap-1.5 text-navy font-bold text-xs md:text-sm hover:gap-2 transition-all active:translate-x-1"
                   >
-                    Read Document
-                    <ChevronRight className="w-4 h-4" />
+                    Read
+                    <ChevronRight className="w-3.5 h-3.5 md:w-4 md:h-4" />
                   </button>
                 </div>
               </div>

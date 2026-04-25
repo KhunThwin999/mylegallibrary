@@ -161,15 +161,15 @@ export default function TextDictionary({ onBack }: TextDictionaryProps) {
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -20 }}
-      className="max-w-7xl mx-auto px-4 py-6 h-[calc(100vh-80px)] flex flex-col"
+      className="max-w-7xl mx-auto px-4 py-4 md:py-6 h-[calc(100vh-64px)] md:h-[calc(100vh-80px)] flex flex-col"
     >
       <div className="flex items-center justify-between mb-4 shrink-0">
         <button 
           onClick={onBack}
-          className="flex items-center gap-2 text-navy font-bold hover:gap-3 transition-all"
+          className="flex items-center gap-2 text-navy font-bold hover:gap-3 transition-all min-h-[44px] px-2"
         >
           <ArrowLeft className="w-5 h-5" />
-          Back to Library
+          <span className="text-sm md:text-base">Back to Library</span>
         </button>
         <div className="hidden md:flex items-center gap-2 text-slate-400 text-xs font-bold uppercase tracking-widest">
           <FileText className="w-4 h-4" />
@@ -177,18 +177,19 @@ export default function TextDictionary({ onBack }: TextDictionaryProps) {
         </div>
       </div>
 
-      <div className="bg-white rounded-3xl border border-slate-200 shadow-2xl overflow-hidden flex-1 flex flex-col min-h-0">
+      <div className="bg-white rounded-2xl md:rounded-3xl border border-slate-200 shadow-2xl overflow-hidden flex-1 flex flex-col min-h-0">
         {/* Fixed Header & Search */}
         <div className="shrink-0 border-b border-slate-100">
-          <div className="bg-navy text-white p-6 relative overflow-hidden">
+          <div className="bg-navy text-white p-4 md:p-6 relative overflow-hidden">
             <div className="absolute top-0 right-0 w-32 h-32 opacity-10 pointer-events-none">
               <FileText className="w-full h-full -rotate-12 translate-x-1/4" />
             </div>
             <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-4">
               <div>
-                <h1 className="text-2xl font-bold tracking-tight flex items-center gap-3">
-                  <FileText className="w-8 h-8 text-slate-300" />
-                  English - Myanmar Law Dictionary
+                <h1 className="text-xl md:text-2xl font-bold tracking-tight flex items-center gap-3">
+                  <FileText className="w-6 h-6 md:w-8 md:h-8 text-slate-300" />
+                  <span className="hidden xs:inline">English - Myanmar Law Dictionary</span>
+                  <span className="xs:hidden">Law Dictionary</span>
                 </h1>
               </div>
               
@@ -199,7 +200,7 @@ export default function TextDictionary({ onBack }: TextDictionaryProps) {
                   placeholder="Search English or Myanmar terms..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full pl-10 pr-20 py-2.5 bg-white/10 border border-white/20 rounded-xl text-sm text-white placeholder:text-slate-400 focus:bg-white/20 focus:ring-4 focus:ring-white/5 focus:border-white/40 outline-none transition-all"
+                  className="w-full pl-10 pr-20 py-3 bg-white/10 border border-white/20 rounded-xl text-base md:text-sm text-white placeholder:text-slate-400 focus:bg-white/20 focus:ring-4 focus:ring-white/5 focus:border-white/40 outline-none transition-all"
                   disabled={loading || !!error}
                 />
                 <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1">
@@ -212,12 +213,6 @@ export default function TextDictionary({ onBack }: TextDictionaryProps) {
                       <X className="w-4 h-4" />
                     </button>
                   )}
-                  <button 
-                    className="md:hidden px-2 py-1 bg-white/20 hover:bg-white/30 rounded-lg text-[10px] font-bold text-white transition-all uppercase tracking-tighter"
-                    onClick={() => (document.activeElement as HTMLElement)?.blur()}
-                  >
-                    Done
-                  </button>
                 </div>
               </div>
             </div>

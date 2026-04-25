@@ -3,6 +3,7 @@
 
 @theme {
   --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-myanmar: "Pyidaungsu", "Inter", sans-serif;
   --color-navy: #1B365D;
   --color-slate-gray: #6C757D;
   --color-muted-green: #28A745;
@@ -12,6 +13,21 @@
 @layer base {
   html {
     scroll-behavior: smooth;
+    -webkit-tap-highlight-color: transparent;
+  }
+  
+  body {
+    @apply antialiased;
+  }
+
+  /* Optimize touch targets for mobile */
+  button, a {
+    @apply min-h-[44px] min-w-[44px];
+  }
+
+  /* Burmese text optimization */
+  .font-myanmar {
+    @apply leading-[1.6];
   }
 }
 
