@@ -144,7 +144,7 @@ export default function LandingPage({
             <h1 className="text-4xl md:text-7xl font-black text-slate-900 leading-[1.1] tracking-tight">
               Myanmar Legal Library: <span className="text-navy">Access the Logic of the Law.</span>
             </h1>
-            <div className="text-sm md:text-base font-black text-navy/70 uppercase tracking-[0.1em] font-myanmar">
+            <div className="text-sm md:text-base font-bold text-navy/70 font-myanmar">
               မြန်မာဥပဒေ စာအုပ်များ (Myanmar Law Books)
             </div>
             <p className="text-lg md:text-xl text-slate-600 leading-relaxed max-w-xl">
@@ -256,7 +256,7 @@ export default function LandingPage({
       <section className="py-20 md:py-32 bg-slate-50">
         <div className="max-w-7xl mx-auto px-4">
           <div className="text-center mb-12 md:mb-20 space-y-4">
-            <h2 className="text-3xl md:text-6xl font-black text-slate-900 tracking-tight">Search for <span className="text-navy">မြန်မာဥပဒေ စာအုပ်များ</span></h2>
+            <h2 className="text-3xl md:text-6xl font-black text-slate-900 tracking-tight">Search for <span className="text-navy font-myanmar tracking-normal">မြန်မာဥပဒေ စာအုပ်များ</span></h2>
             <p className="text-slate-500 max-w-2xl mx-auto text-base md:text-lg">Digitized, searchable, and always available. The premier <span className="text-navy font-bold">Myanmar law book</span> gateway.</p>
           </div>
 

@@ -537,7 +537,7 @@ export default function App({ initialBooks = [], initialVisits = 0, initialPath 
               <span className="text-base md:text-lg font-black tracking-tighter">Myanmar Legal</span>
               <div className="flex items-center gap-2">
                 <span className="text-[10px] font-medium text-slate-400 uppercase tracking-widest">Library</span>
-                <span className="hidden lg:block text-[10px] font-bold text-navy/40 font-myanmar uppercase tracking-tighter">
+                <span className="hidden lg:block text-[10px] font-bold text-navy/40 font-myanmar">
                   မြန်မာဥပဒေ စာအုပ်များ
                 </span>
                 {!loading && books.length > 0 && (
@@ -1160,7 +1160,7 @@ export default function App({ initialBooks = [], initialVisits = 0, initialPath 
                     <button 
                       key={letter}
                       onClick={() => { setSelectedLetter(letter); setIsAlphabetModalOpen(false); }}
-                      className={`aspect-square flex items-center justify-center rounded-xl font-bold text-lg transition-all ${
+                      className={`aspect-square flex items-center justify-center rounded-xl font-bold text-lg transition-all font-myanmar ${
                         selectedLetter === letter ? 'bg-navy text-white shadow-lg shadow-slate-200' : 'bg-slate-50 text-slate-600 hover:bg-slate-100'
                       }`}
                     >

@@ -98,13 +98,13 @@ export default function LegalRulings({ books, onBack, onRead }: LegalRulingsProp
               <div className="w-14 h-14 md:w-16 md:h-16 bg-navy text-white rounded-2xl md:rounded-[2rem] flex items-center justify-center shadow-2xl shadow-navy/20 shrink-0">
                 <Scale className="w-7 h-7 md:w-8 md:h-8" />
               </div>
-              <div>
+              <div className="font-myanmar tracking-normal">
                 တရားစီရင်ထုံးများ
-                <span className="block text-base md:text-xl font-bold text-slate-400 tracking-wider uppercase mt-1 md:mt-3">Court Decisions List</span>
+                <span className="block text-base md:text-xl font-bold text-slate-400 tracking-wider uppercase mt-1 md:mt-3 font-sans">Court Decisions List</span>
               </div>
             </h1>
           </div>
-          <p className="text-slate-500 max-w-2xl leading-relaxed font-medium text-sm md:text-base">
+          <p className="text-slate-500 max-w-2xl leading-relaxed font-medium text-sm md:text-base font-myanmar tracking-normal">
             ဗဟိုတရားရုံးနှင့် အဆင့်ဆင့်သော တရားရုံးများမှ ထုတ်ပြန်ထားသည့် အရေးကြီးသော တရားစီရင်ထုံးများအား ခုနှစ်အလိုက် ရှာဖွေဖတ်ရှုနိုင်ပါသည်။
           </p>
         </div>
@@ -172,7 +172,7 @@ export default function LegalRulings({ books, onBack, onRead }: LegalRulingsProp
                           className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-6 py-3 bg-slate-50 text-slate-600 group-hover:bg-navy group-hover:text-white rounded-xl text-xs font-bold transition-all active:scale-95"
                         >
                           <BookOpen className="w-4 h-4" />
-                          <span>ဖတ်ရှုရန်</span>
+                          <span className="font-myanmar tracking-normal">ဖတ်ရှုရန်</span>
                         </button>
                         <a 
                           href={book.file}
