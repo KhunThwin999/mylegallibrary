@@ -1,0 +1,11 @@
+# Myanmar Legal Library
+
+The premier digital repository for Myanmar law books, Constitution, penal codes, and supreme court rulings.
+
+## Available Pages
+- [Home](/)
+- [Library](/books)
+- [Legal Rulings](/rulings)
+- [Dictionary](/dictionary)
+- [Latest Updates](/latest)
+- [About Us](/about)

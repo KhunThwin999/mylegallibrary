@@ -39,7 +39,7 @@ async function startServer() {
     app.use(express.static(path.join(process.cwd(), 'dist/client'), { index: false }));
   }
 
-  // Explicitly serve sitemap.xml and robots.txt
+  // Explicitly serve robots.txt
   const serveStaticFile = (fileName: string, contentType: string) => (req: any, res: any) => {
     const possiblePaths = [
       path.join(process.cwd(), 'dist/client', fileName),
@@ -55,8 +55,58 @@ async function startServer() {
     res.status(404).send(`${fileName} not found`);
   };
 
-  app.get('/sitemap.xml', serveStaticFile('sitemap.xml', 'application/xml'));
+  async function fetchBooksForSeo() {
+    try {
+      const response = await fetch(GOOGLE_SHEET_URL);
+      if (!response.ok) return [];
+      const data = await response.json();
+      return data.map((book: any, index: number) => ({
+        ...book,
+        id: book.id || String(index + 1),
+      }));
+    } catch (e) {
+      return [];
+    }
+  }
+
+  app.get('/sitemap.xml', async (req, res) => {
+    const baseUrl = `${req.protocol}://${req.get('host')}`;
+    const books = await fetchBooksForSeo();
+    const staticUrls = [
+      { loc: '/', priority: '1.0', freq: 'weekly' },
+      { loc: '/books', priority: '0.9', freq: 'weekly' },
+      { loc: '/dictionary', priority: '0.8', freq: 'monthly' },
+      { loc: '/latest', priority: '0.8', freq: 'daily' },
+      { loc: '/rulings', priority: '0.7', freq: 'weekly' },
+      { loc: '/about', priority: '0.3', freq: 'yearly' },
+      { loc: '/penal-code', priority: '0.7', freq: 'monthly' },
+      { loc: '/civil-law', priority: '0.7', freq: 'monthly' },
+    ];
+
+    const bookUrls = books.map((b: any) => `
+    <url>
+      <loc>${baseUrl}/book/${b.id}</loc>
+      <changefreq>monthly</changefreq>
+      <priority>0.6</priority>
+    </url>`).join('');
+
+    const staticXml = staticUrls.map(u => `
+    <url>
+      <loc>${baseUrl}${u.loc}</loc>
+      <changefreq>${u.freq}</changefreq>
+      <priority>${u.priority}</priority>
+    </url>`).join('');
+
+    const xml = `<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">${staticXml}${bookUrls}
+</urlset>`;
+
+    res.header('Content-Type', 'application/xml');
+    res.send(xml);
+  });
+
   app.get('/robots.txt', serveStaticFile('robots.txt', 'text/plain'));
+  app.get('/llms.txt', serveStaticFile('llms.txt', 'text/plain'));
 
   // Visitor Stats Tracking
   let visitorCount = 0;
@@ -177,11 +227,26 @@ async function startServer() {
         console.error('Server-side fetch failed', e);
       }
 
-      incrementVisitorCount();
       const initialData = { books: initialBooks, visits: visitorCount };
       const { html: appHtml } = await render(url, initialData);
 
-      let html = template.replace(`<!--ssr-outlet-->`, appHtml);
+      // Determine page language — most pages are Myanmar-heavy
+      let pageLang = 'my';
+      if (url === '/dictionary') pageLang = 'en'; // English-Myanmar dictionary, mixed but search terms mostly English
+      
+      let dictionaryPreview = '';
+      if (url === '/dictionary') {
+        try {
+          const dictPath = path.join(process.cwd(), 'public/dictionary.txt');
+          const dictContent = fs.readFileSync(dictPath, 'utf-8');
+          const lines = dictContent.split('\n').filter(Boolean).slice(0, 100); // ပထမ 100 entries
+          dictionaryPreview = `<div style="display:none" id="ssr-dictionary-preview">${lines.join(' / ')}</div>`;
+        } catch (e) {
+          console.error('Dictionary read failed', e);
+        }
+      }
+
+      let html = template.replace(`<!--ssr-outlet-->`, appHtml + dictionaryPreview);
       html = html.replace(`<script id="__INITIAL_DATA__" type="application/json"></script>`, 
                           `<script id="__INITIAL_DATA__" type="application/json">${JSON.stringify(initialData)}</script>`);
 
@@ -230,6 +295,8 @@ async function startServer() {
       html = html.replace(/<meta property="og:description" content=".*?"\s*\/?>/, `<meta property="og:description" content="${seoDesc}">`);
       html = html.replace(/<meta property="og:image" content=".*?"\s*\/?>/, `<meta property="og:image" content="${seoImage}">`);
       html = html.replace(/<meta property="og:url" content=".*?"\s*\/?>/, `<meta property="og:url" content="${fullUrl}">`);
+      
+      html = html.replace(/<html lang=".*?">/, `<html lang="${pageLang}">`);
 
       // Schema.org Structured Data
       let schemaData: any = {
@@ -277,7 +344,7 @@ async function startServer() {
       }
 
       const schemaScript = `<script type="application/ld+json">${JSON.stringify(schemaData)}</script>`;
-      html = html.replace(`</head>`, `${schemaScript}</head>`);
+      html = html.replace(`</head>`, `<link rel="canonical" href="${fullUrl}">${schemaScript}</head>`);
 
       res.status(200).set({ 'Content-Type': 'text/html' }).end(html);
     } catch (e: any) {

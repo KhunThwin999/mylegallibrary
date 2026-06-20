@@ -896,6 +896,7 @@ export default function App({ initialBooks = [], initialVisits = 0, initialPath 
                                   navigate('book-detail', book.id);
                                 }}
                                 className="w-14 h-14 bg-white text-navy rounded-2xl flex items-center justify-center hover:bg-navy hover:text-white transition-all shadow-2xl active:scale-90"
+                                aria-label="View book details"
                               >
                                 <Info className="w-6 h-6" />
                               </button>
@@ -1270,6 +1271,7 @@ export default function App({ initialBooks = [], initialVisits = 0, initialPath 
                   <button 
                     onClick={() => navigate('library')}
                     className="w-8 h-8 bg-navy text-white rounded-lg flex items-center justify-center hover:opacity-80 transition-opacity"
+                    aria-label="Go to Library"
                   >
                     <Scale className="w-5 h-5" />
                   </button>
